@@ -4,7 +4,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDialog, QInputDialog, QApplication
 from PyQt5.uic import loadUi
 
-from pktCuentas.bank_herencia import BankHerencia
+from pktCuentas.bank_herencia import BankManager
 from pktCuentas.credit_account import CreditAccount
 from pktCuentas.database_manager import DatabaseManager
 from pktCuentas.data_manager import DataManager
@@ -21,11 +21,8 @@ class Main(QMainWindow):
         super(Main, self).__init__(parent)
         try:
             loadUi('mwVentana.ui', self)
-
-            # Inicializar DatabaseManager
             self.db_manager = DatabaseManager()
             connected = self.db_manager.connect()
-
             if not connected:
                 QMessageBox.warning(self, 'Advertencia Base de Datos',
                     'No se pudo conectar a la base de datos MySQL.\n'
@@ -35,10 +32,8 @@ class Main(QMainWindow):
                     '2. La base de datos "banco_db" existe (ejecute banco_schema.sql)\n'
                     '3. Las credenciales en config/database_config.ini son correctas')
                 self.db_manager = None
-
-            # Inicializar Bank con DatabaseManager
-            self.bank = BankHerencia(self.db_manager)
-
+            # Use BankManager instead of BankHerencia
+            self.bank = BankManager(self.db_manager)
             self.setup_table()
             self.setup_events()
             try:

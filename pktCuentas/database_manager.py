@@ -1,7 +1,7 @@
 """
 Database Manager Module
-Gestiona todas las operaciones de base de datos MySQL
-Implementa patrón Singleton y pool de conexiones
+Handles all MySQL database operations
+Implements Singleton pattern and connection pool
 """
 
 import mysql.connector
@@ -13,8 +13,8 @@ import os
 
 class DatabaseManager:
     """
-    Gestor de base de datos MySQL con patrón Singleton
-    Maneja conexiones, operaciones CRUD y transacciones
+    MySQL database manager with Singleton pattern
+    Handles connections, CRUD operations, and transactions
     """
 
     _instance = None
@@ -42,7 +42,7 @@ class DatabaseManager:
         config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', 'database_config.ini')
 
         if not os.path.exists(config_path):
-            raise FileNotFoundError(f"Archivo de configuración no encontrado: {config_path}")
+            raise FileNotFoundError(f"Config file not found: {config_path}")
 
         config.read(config_path)
 
@@ -76,7 +76,7 @@ class DatabaseManager:
                 )
             return True
         except Error as e:
-            print(f"Error al conectar a la base de datos: {e}")
+            print(f"Database connection error: {e}")
             return False
 
     def _get_connection(self):
@@ -91,23 +91,23 @@ class DatabaseManager:
             # El pool se cerrará automáticamente al finalizar el programa
             self._pool = None
 
-    def insertar_cuenta(self, no_cuenta: int, apellido_paterno: str, apellido_materno: str,
-                       nombre: str, balance: float = 1000.0, fecha: str = None,
-                       lugar: str = "", tipo_cuenta: str = "normal",
-                       limite_credito: float = 0.0) -> Tuple[bool, str]:
+    def insert_account(self, account_no: int, last_name: str, middle_name: str,
+                      first_name: str, balance: float = 1000.0, date: str = None,
+                      location: str = "", account_type: str = "normal",
+                      credit_limit: float = 0.0) -> Tuple[bool, str]:
         """
         Inserta una nueva cuenta en la base de datos
 
         Args:
-            no_cuenta: Número único de cuenta
-            apellido_paterno: Apellido paterno del cliente
-            apellido_materno: Apellido materno del cliente
-            nombre: Nombre del cliente
+            account_no: Número único de cuenta
+            last_name: Apellido paterno del cliente
+            middle_name: Apellido materno del cliente
+            first_name: Nombre del cliente
             balance: Saldo inicial
-            fecha: Fecha de apertura (formato YYYY-MM-DD)
-            lugar: Lugar de apertura
-            tipo_cuenta: 'normal' o 'credit'
-            limite_credito: Límite de crédito (solo para cuentas de crédito)
+            date: Fecha de apertura (formato YYYY-MM-DD)
+            location: Lugar de apertura
+            account_type: 'normal' o 'credit'
+            credit_limit: Límite de crédito (solo para cuentas de crédito)
 
         Returns:
             Tuple[bool, str]: (éxito, mensaje)
@@ -117,35 +117,35 @@ class DatabaseManager:
 
         try:
             # Validaciones
-            if not apellido_paterno or not apellido_materno or not nombre:
+            if not last_name or not middle_name or not first_name:
                 return False, "Los nombres no pueden estar vacíos"
 
             if balance < 0:
                 return False, "El balance no puede ser negativo"
 
-            if tipo_cuenta not in ['normal', 'credit']:
+            if account_type not in ['normal', 'credit']:
                 return False, "Tipo de cuenta inválido"
 
-            if self.validar_cuenta_existe(no_cuenta):
-                return False, f"La cuenta {no_cuenta} ya existe"
+            if self.account_exists(account_no):
+                return False, f"La cuenta {account_no} ya existe"
 
             connection = self._get_connection()
             cursor = connection.cursor()
 
             query = """
-                INSERT INTO cuentas 
-                (no_cuenta, apellido_paterno, apellido_materno, nombre, balance, 
-                 fecha, lugar, tipo_cuenta, limite_credito)
+                INSERT INTO accounts 
+                (account_no, last_name, middle_name, first_name, balance, 
+                 date, location, account_type, credit_limit)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
 
-            values = (no_cuenta, apellido_paterno, apellido_materno, nombre,
-                     balance, fecha, lugar, tipo_cuenta, limite_credito)
+            values = (account_no, last_name, middle_name, first_name,
+                     balance, date, location, account_type, credit_limit)
 
             cursor.execute(query, values)
             connection.commit()
 
-            return True, f"Cuenta {no_cuenta} insertada exitosamente"
+            return True, f"Cuenta {account_no} insertada exitosamente"
 
         except Error as e:
             if connection:
@@ -158,22 +158,22 @@ class DatabaseManager:
             if connection:
                 connection.close()
 
-    def actualizar_cuenta(self, no_cuenta: int, apellido_paterno: str = None,
-                         apellido_materno: str = None, nombre: str = None,
-                         balance: float = None, fecha: str = None, lugar: str = None,
-                         limite_credito: float = None) -> Tuple[bool, str]:
+    def update_account(self, account_no: int, last_name: str = None,
+                      middle_name: str = None, first_name: str = None,
+                      balance: float = None, date: str = None, location: str = None,
+                      credit_limit: float = None) -> Tuple[bool, str]:
         """
         Actualiza los datos de una cuenta existente
 
         Args:
-            no_cuenta: Número de cuenta a actualizar
-            apellido_paterno: Nuevo apellido paterno (opcional)
-            apellido_materno: Nuevo apellido materno (opcional)
-            nombre: Nuevo nombre (opcional)
+            account_no: Número de cuenta a actualizar
+            last_name: Nuevo apellido paterno (opcional)
+            middle_name: Nuevo apellido materno (opcional)
+            first_name: Nuevo nombre (opcional)
             balance: Nuevo balance (opcional)
-            fecha: Nueva fecha (opcional)
-            lugar: Nuevo lugar (opcional)
-            limite_credito: Nuevo límite de crédito (opcional)
+            date: Nueva fecha (opcional)
+            location: Nuevo lugar (opcional)
+            credit_limit: Nuevo límite de crédito (opcional)
 
         Returns:
             Tuple[bool, str]: (éxito, mensaje)
@@ -182,24 +182,24 @@ class DatabaseManager:
         cursor = None
 
         try:
-            if not self.validar_cuenta_existe(no_cuenta):
-                return False, f"La cuenta {no_cuenta} no existe"
+            if not self.account_exists(account_no):
+                return False, f"La cuenta {account_no} no existe"
 
             # Construir query dinámica con los campos a actualizar
             updates = []
             values = []
 
-            if apellido_paterno is not None:
-                updates.append("apellido_paterno = %s")
-                values.append(apellido_paterno)
+            if last_name is not None:
+                updates.append("last_name = %s")
+                values.append(last_name)
 
-            if apellido_materno is not None:
-                updates.append("apellido_materno = %s")
-                values.append(apellido_materno)
+            if middle_name is not None:
+                updates.append("middle_name = %s")
+                values.append(middle_name)
 
-            if nombre is not None:
-                updates.append("nombre = %s")
-                values.append(nombre)
+            if first_name is not None:
+                updates.append("first_name = %s")
+                values.append(first_name)
 
             if balance is not None:
                 if balance < 0:
@@ -207,19 +207,19 @@ class DatabaseManager:
                 updates.append("balance = %s")
                 values.append(balance)
 
-            if fecha is not None:
-                updates.append("fecha = %s")
-                values.append(fecha)
+            if date is not None:
+                updates.append("date = %s")
+                values.append(date)
 
-            if lugar is not None:
-                updates.append("lugar = %s")
-                values.append(lugar)
+            if location is not None:
+                updates.append("location = %s")
+                values.append(location)
 
-            if limite_credito is not None:
-                if limite_credito < 0:
+            if credit_limit is not None:
+                if credit_limit < 0:
                     return False, "El límite de crédito no puede ser negativo"
-                updates.append("limite_credito = %s")
-                values.append(limite_credito)
+                updates.append("credit_limit = %s")
+                values.append(credit_limit)
 
             if not updates:
                 return False, "No hay campos para actualizar"
@@ -227,13 +227,13 @@ class DatabaseManager:
             connection = self._get_connection()
             cursor = connection.cursor()
 
-            query = f"UPDATE cuentas SET {', '.join(updates)} WHERE no_cuenta = %s"
-            values.append(no_cuenta)
+            query = f"UPDATE accounts SET {', '.join(updates)} WHERE account_no = %s"
+            values.append(account_no)
 
             cursor.execute(query, tuple(values))
             connection.commit()
 
-            return True, f"Cuenta {no_cuenta} actualizada exitosamente"
+            return True, f"Cuenta {account_no} actualizada exitosamente"
 
         except Error as e:
             if connection:
@@ -246,12 +246,12 @@ class DatabaseManager:
             if connection:
                 connection.close()
 
-    def eliminar_cuenta(self, no_cuenta: int) -> Tuple[bool, str]:
+    def delete_account(self, account_no: int) -> Tuple[bool, str]:
         """
         Elimina una cuenta de la base de datos
 
         Args:
-            no_cuenta: Número de cuenta a eliminar
+            account_no: Número de cuenta a eliminar
 
         Returns:
             Tuple[bool, str]: (éxito, mensaje)
@@ -260,17 +260,17 @@ class DatabaseManager:
         cursor = None
 
         try:
-            if not self.validar_cuenta_existe(no_cuenta):
-                return False, f"La cuenta {no_cuenta} no existe"
+            if not self.account_exists(account_no):
+                return False, f"La cuenta {account_no} no existe"
 
             connection = self._get_connection()
             cursor = connection.cursor()
 
-            query = "DELETE FROM cuentas WHERE no_cuenta = %s"
-            cursor.execute(query, (no_cuenta,))
+            query = "DELETE FROM accounts WHERE account_no = %s"
+            cursor.execute(query, (account_no,))
             connection.commit()
 
-            return True, f"Cuenta {no_cuenta} eliminada exitosamente"
+            return True, f"Cuenta {account_no} eliminada exitosamente"
 
         except Error as e:
             if connection:
@@ -283,7 +283,7 @@ class DatabaseManager:
             if connection:
                 connection.close()
 
-    def consultar_todas(self) -> List[Dict]:
+    def get_all_accounts(self) -> List[Dict]:
         """
         Consulta todas las cuentas de la base de datos
 
@@ -298,10 +298,10 @@ class DatabaseManager:
             cursor = connection.cursor(dictionary=True)
 
             query = """
-                SELECT no_cuenta, apellido_paterno, apellido_materno, nombre, 
-                       balance, fecha, lugar, tipo_cuenta, limite_credito
-                FROM cuentas
-                ORDER BY no_cuenta
+                SELECT account_no, last_name, middle_name, first_name, 
+                       balance, date, location, account_type, credit_limit
+                FROM accounts
+                ORDER BY account_no
             """
 
             cursor.execute(query)
@@ -310,7 +310,7 @@ class DatabaseManager:
             return results
 
         except Error as e:
-            print(f"Error al consultar cuentas: {e}")
+            print(f"Error getting accounts: {e}")
             return []
 
         finally:
@@ -319,12 +319,12 @@ class DatabaseManager:
             if connection:
                 connection.close()
 
-    def consultar_una(self, no_cuenta: int) -> Optional[Dict]:
+    def get_account(self, account_no: int) -> Optional[Dict]:
         """
         Consulta una cuenta específica
 
         Args:
-            no_cuenta: Número de cuenta a consultar
+            account_no: Número de cuenta a consultar
 
         Returns:
             Optional[Dict]: Diccionario con los datos de la cuenta o None
@@ -337,19 +337,19 @@ class DatabaseManager:
             cursor = connection.cursor(dictionary=True)
 
             query = """
-                SELECT no_cuenta, apellido_paterno, apellido_materno, nombre, 
-                       balance, fecha, lugar, tipo_cuenta, limite_credito
-                FROM cuentas
-                WHERE no_cuenta = %s
+                SELECT account_no, last_name, middle_name, first_name, 
+                       balance, date, location, account_type, credit_limit
+                FROM accounts
+                WHERE account_no = %s
             """
 
-            cursor.execute(query, (no_cuenta,))
+            cursor.execute(query, (account_no,))
             result = cursor.fetchone()
 
             return result
 
         except Error as e:
-            print(f"Error al consultar cuenta: {e}")
+            print(f"Error getting account: {e}")
             return None
 
         finally:
@@ -358,20 +358,20 @@ class DatabaseManager:
             if connection:
                 connection.close()
 
-    def consultar_por_filtro(self, tipo_cuenta: str = None,
-                            balance_min: float = None, balance_max: float = None,
-                            fecha_inicio: str = None, fecha_fin: str = None,
-                            lugar: str = None) -> List[Dict]:
+    def get_accounts_by_filter(self, account_type: str = None,
+                              balance_min: float = None, balance_max: float = None,
+                              date_start: str = None, date_end: str = None,
+                              location: str = None) -> List[Dict]:
         """
         Consulta cuentas aplicando filtros
 
         Args:
-            tipo_cuenta: Filtrar por tipo de cuenta ('normal' o 'credit')
+            account_type: Filtrar por tipo de cuenta ('normal' o 'credit')
             balance_min: Balance mínimo
             balance_max: Balance máximo
-            fecha_inicio: Fecha inicial (YYYY-MM-DD)
-            fecha_fin: Fecha final (YYYY-MM-DD)
-            lugar: Filtrar por lugar (búsqueda parcial)
+            date_start: Fecha inicial (YYYY-MM-DD)
+            date_end: Fecha final (YYYY-MM-DD)
+            location: Filtrar por lugar (búsqueda parcial)
 
         Returns:
             List[Dict]: Lista de cuentas que cumplen los filtros
@@ -387,9 +387,9 @@ class DatabaseManager:
             conditions = []
             values = []
 
-            if tipo_cuenta:
-                conditions.append("tipo_cuenta = %s")
-                values.append(tipo_cuenta)
+            if account_type:
+                conditions.append("account_type = %s")
+                values.append(account_type)
 
             if balance_min is not None:
                 conditions.append("balance >= %s")
@@ -399,28 +399,28 @@ class DatabaseManager:
                 conditions.append("balance <= %s")
                 values.append(balance_max)
 
-            if fecha_inicio:
-                conditions.append("fecha >= %s")
-                values.append(fecha_inicio)
+            if date_start:
+                conditions.append("date >= %s")
+                values.append(date_start)
 
-            if fecha_fin:
-                conditions.append("fecha <= %s")
-                values.append(fecha_fin)
+            if date_end:
+                conditions.append("date <= %s")
+                values.append(date_end)
 
-            if lugar:
-                conditions.append("lugar LIKE %s")
-                values.append(f"%{lugar}%")
+            if location:
+                conditions.append("location LIKE %s")
+                values.append(f"%{location}%")
 
             query = """
-                SELECT no_cuenta, apellido_paterno, apellido_materno, nombre, 
-                       balance, fecha, lugar, tipo_cuenta, limite_credito
-                FROM cuentas
+                SELECT account_no, last_name, middle_name, first_name, 
+                       balance, date, location, account_type, credit_limit
+                FROM accounts
             """
 
             if conditions:
                 query += " WHERE " + " AND ".join(conditions)
 
-            query += " ORDER BY no_cuenta"
+            query += " ORDER BY account_no"
 
             cursor.execute(query, tuple(values))
             results = cursor.fetchall()
@@ -428,7 +428,7 @@ class DatabaseManager:
             return results
 
         except Error as e:
-            print(f"Error al consultar con filtros: {e}")
+            print(f"Error filtering accounts: {e}")
             return []
 
         finally:
@@ -437,12 +437,12 @@ class DatabaseManager:
             if connection:
                 connection.close()
 
-    def validar_cuenta_existe(self, no_cuenta: int) -> bool:
+    def account_exists(self, account_no: int) -> bool:
         """
         Verifica si una cuenta existe en la base de datos
 
         Args:
-            no_cuenta: Número de cuenta a verificar
+            account_no: Número de cuenta a verificar
 
         Returns:
             bool: True si existe, False en caso contrario
@@ -454,14 +454,14 @@ class DatabaseManager:
             connection = self._get_connection()
             cursor = connection.cursor()
 
-            query = "SELECT COUNT(*) FROM cuentas WHERE no_cuenta = %s"
-            cursor.execute(query, (no_cuenta,))
+            query = "SELECT COUNT(*) FROM accounts WHERE account_no = %s"
+            cursor.execute(query, (account_no,))
 
             count = cursor.fetchone()[0]
             return count > 0
 
         except Error as e:
-            print(f"Error al validar cuenta: {e}")
+            print(f"Error checking account existence: {e}")
             return False
 
         finally:
@@ -469,4 +469,3 @@ class DatabaseManager:
                 cursor.close()
             if connection:
                 connection.close()
-

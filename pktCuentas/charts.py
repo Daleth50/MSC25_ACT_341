@@ -10,12 +10,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from matplotlib.figure import Figure
+from pktCuentas.analytics import Analytics
 
 
 class ChartGenerator:
     """
-    Generador de gráficas para análisis de cuentas bancarias
-    Utiliza Matplotlib y Seaborn
+    Generates charts for account data using matplotlib and seaborn.
     """
 
     # Configuración de estilo
@@ -26,9 +26,9 @@ class ChartGenerator:
         sns.set_palette("husl")
 
     @staticmethod
-    def generar_histograma_saldos(accounts: List) -> Figure:
+    def generate_balance_histogram(accounts: List) -> Figure:
         """
-        Gráfica 1: Histograma de distribución de saldos
+        Generate a histogram of account balances.
 
         Args:
             accounts: Lista de objetos Account
@@ -36,8 +36,6 @@ class ChartGenerator:
         Returns:
             Figure: Objeto Figure de matplotlib
         """
-        from pktCuentas.analytics import Analytics
-
         ChartGenerator._configure_style()
 
         # Convertir a DataFrame
@@ -92,9 +90,9 @@ class ChartGenerator:
         return fig
 
     @staticmethod
-    def generar_pie_tipos(accounts: List) -> Figure:
+    def generate_account_type_pie(accounts: List) -> Figure:
         """
-        Gráfica 2: Gráfica de pastel (pie chart) de cuentas por tipo
+        Generate a pie chart of account types.
 
         Args:
             accounts: Lista de objetos Account
@@ -102,8 +100,6 @@ class ChartGenerator:
         Returns:
             Figure: Objeto Figure de matplotlib
         """
-        from pktCuentas.analytics import Analytics
-
         ChartGenerator._configure_style()
 
         # Convertir a DataFrame
@@ -183,9 +179,9 @@ class ChartGenerator:
         return fig
 
     @staticmethod
-    def generar_linea_temporal(accounts: List) -> Figure:
+    def generate_temporal_trend(accounts: List) -> Figure:
         """
-        Gráfica 3: Gráfica de líneas - tendencia temporal de apertura de cuentas
+        Generate a line chart showing account creation over time.
 
         Args:
             accounts: Lista de objetos Account
@@ -193,8 +189,6 @@ class ChartGenerator:
         Returns:
             Figure: Objeto Figure de matplotlib
         """
-        from pktCuentas.analytics import Analytics
-
         ChartGenerator._configure_style()
 
         # Convertir a DataFrame
@@ -298,9 +292,9 @@ class ChartGenerator:
         return fig
 
     @staticmethod
-    def generar_comparacion_credito(accounts: List) -> Figure:
+    def generate_credit_comparison(accounts: List) -> Figure:
         """
-        Gráfica bonus: Comparación de límites de crédito vs balance
+        Generate a bar chart comparing balance and credit limit for credit accounts.
 
         Args:
             accounts: Lista de objetos Account
@@ -308,8 +302,6 @@ class ChartGenerator:
         Returns:
             Figure: Objeto Figure de matplotlib
         """
-        from pktCuentas.analytics import Analytics
-
         ChartGenerator._configure_style()
 
         # Convertir a DataFrame

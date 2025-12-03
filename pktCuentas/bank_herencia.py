@@ -2,134 +2,126 @@ from pktCuentas.credit_account import CreditAccount
 from pktCuentas.account import Account
 
 
-class BankHerencia:
+class BankManager:
     def __init__(self, db_manager=None):
         self.accounts = []
         self.db_manager = db_manager
 
-        # Cargar cuentas desde la base de datos si está disponible
+        # Load accounts from the database if available
         if self.db_manager:
             self.load_from_database()
 
     def load_from_database(self):
-        """Cargar todas las cuentas desde la base de datos"""
+        """Load all accounts from the database"""
         try:
             if not self.db_manager:
                 return
 
-            cuentas_db = self.db_manager.obtener_todas_cuentas()
+            db_accounts = self.db_manager.get_all_accounts()
             self.accounts = []
 
-            for cuenta_data in cuentas_db:
-                no_cuenta = cuenta_data['no_cuenta']
-                apellido_paterno = cuenta_data['apellido_paterno']
-                apellido_materno = cuenta_data['apellido_materno']
-                nombre = cuenta_data['nombre']
-                balance = cuenta_data['balance']
-                fecha = cuenta_data.get('fecha')
-                lugar = cuenta_data.get('lugar', '')
-                tipo_cuenta = cuenta_data.get('tipo_cuenta', 'normal')
-                limite_credito = cuenta_data.get('limite_credito', 0.0)
+            for acc_data in db_accounts:
+                account_no = acc_data['account_no']
+                last_name = acc_data['last_name']
+                middle_name = acc_data['middle_name']
+                first_name = acc_data['first_name']
+                balance = acc_data['balance']
+                date = acc_data.get('date')
+                location = acc_data.get('location', '')
+                account_type = acc_data.get('account_type', 'normal')
+                credit_limit = acc_data.get('credit_limit', 0.0)
 
-                if tipo_cuenta == 'credit':
-                    account = CreditAccount(no_cuenta, apellido_paterno, apellido_materno,
-                                          nombre, balance, fecha, lugar)
-                    if limite_credito > 0:
-                        account.set_credit(limite_credito)
+                if account_type == 'credit':
+                    account = CreditAccount(account_no, last_name, middle_name,
+                                            first_name, balance, date, location)
+                    if credit_limit > 0:
+                        account.set_credit(credit_limit)
                 else:
-                    account = Account(no_cuenta, apellido_paterno, apellido_materno,
-                                    nombre, balance, fecha, lugar)
+                    account = Account(account_no, last_name, middle_name,
+                                      first_name, balance, date, location)
 
                 self.accounts.append(account)
         except Exception as e:
-            print(f"Error al cargar cuentas desde BD: {e}")
+            print(f"Error loading accounts from DB: {e}")
 
     def get_account(self, account_no):
-        """Obtener una cuenta por su número"""
+        """Get an account by its number"""
         return next((acc for acc in self.accounts if acc.get_no_account() == int(account_no)), None)
 
-    def handle_add_acount(self, no_account, apellido_paterno, apellido_materno, nombre,
-                         account_type, balance, fecha, lugar, credit=0.0):
-        """Agregar una nueva cuenta"""
+    def add_account(self, account_no, last_name, middle_name, first_name,
+                    account_type, balance, date, location, credit=0.0):
+        """Add a new account"""
         try:
-            # Verificar si ya existe
-            if self.get_account(no_account):
-                return Exception(f'La cuenta {no_account} ya existe')
+            # Check if it already exists
+            if self.get_account(account_no):
+                return Exception(f'La cuenta {account_no} ya existe')
 
-            # Crear la cuenta según el tipo
+            # Create the account according to the type
             if account_type == 'credit':
-                new_account = CreditAccount(no_account, apellido_paterno, apellido_materno,
-                                          nombre, balance, fecha, lugar)
+                new_account = CreditAccount(account_no, last_name, middle_name,
+                                            first_name, balance, date, location)
                 if credit > 0:
                     new_account.set_credit(credit)
             else:
-                new_account = Account(no_account, apellido_paterno, apellido_materno,
-                                    nombre, balance, fecha, lugar)
+                new_account = Account(account_no, last_name, middle_name,
+                                      first_name, balance, date, location)
 
-            # Agregar a la lista local
+            # Add to the local list
             self.accounts.append(new_account)
 
-            # Sincronizar con base de datos
+            # Sync with database
             if self.db_manager:
-                tipo_cuenta = 'credit' if isinstance(new_account, CreditAccount) else 'normal'
-                limite_credito = new_account.get_credit_limit() if isinstance(new_account, CreditAccount) else 0.0
+                db_account_type = 'credit' if isinstance(new_account, CreditAccount) else 'normal'
+                db_credit_limit = new_account.get_credit_limit() if isinstance(new_account, CreditAccount) else 0.0
 
-                exito, mensaje = self.db_manager.insertar_cuenta(
-                    no_cuenta=new_account.get_no_account(),
-                    apellido_paterno=new_account.get_apellido_paterno(),
-                    apellido_materno=new_account.get_apellido_materno(),
-                    nombre=new_account.get_nombre(),
+                success, message = self.db_manager.insert_account(
+                    account_no=new_account.get_no_account(),
+                    last_name=new_account.get_apellido_paterno(),
+                    middle_name=new_account.get_apellido_materno(),
+                    first_name=new_account.get_nombre(),
                     balance=new_account.get_balance(),
-                    fecha=new_account.get_fecha(),
-                    lugar=new_account.get_lugar() if new_account.get_lugar() else '',
-                    tipo_cuenta=tipo_cuenta,
-                    limite_credito=limite_credito
+                    date=new_account.get_fecha(),
+                    location=new_account.get_lugar() if new_account.get_lugar() else '',
+                    account_type=db_account_type,
+                    credit_limit=db_credit_limit
                 )
 
-                if not exito:
-                    # Revertir cambio local si falla BD
+                if not success:
+                    # Revert local change if DB fails
                     self.accounts.remove(new_account)
-                    raise Exception(f'Error al insertar en BD: {mensaje}')
+                    raise Exception(f'Error al insertar en BD: {message}')
 
             return new_account
         except Exception as e:
             return e
 
-    def handle_add_account(self, *args, **kwargs):
-        """Alias para handle_add_acount (corregir typo)"""
-        return self.handle_add_acount(*args, **kwargs)
-
     def remove_account(self, account):
-        """Eliminar una cuenta"""
+        """Remove an account"""
         try:
             if account not in self.accounts:
                 return Exception('Cuenta no encontrada')
 
-            # Eliminar de la lista local
+            # Remove from the local list
             self.accounts.remove(account)
 
-            # Sincronizar con base de datos
+            # Sync with database
             if self.db_manager:
-                exito, mensaje = self.db_manager.eliminar_cuenta(account.get_no_account())
-                if not exito:
-                    # Revertir cambio local si falla BD
+                success, message = self.db_manager.delete_account(account.get_no_account())
+                if not success:
+                    # Revert local change if DB fails
                     self.accounts.append(account)
-                    raise Exception(f'Error al eliminar de BD: {mensaje}')
+                    raise Exception(f'Error al eliminar de BD: {message}')
 
             return True
         except Exception as e:
             return e
 
-    def handle_list_accounts(self):
-        """Listar todas las cuentas"""
+    def list_accounts(self):
+        """List all accounts"""
         return self.accounts
 
-    def list_accounts(self):
-        """Alias para handle_list_accounts"""
-        return self.handle_list_accounts()
-
     def deposit_to_account(self, account_no, amount):
-        """Depositar a una cuenta"""
+        """Deposit to an account"""
         try:
             acc = self.get_account(account_no)
             if not acc:
@@ -137,16 +129,16 @@ class BankHerencia:
 
             result = acc.deposit(amount)
 
-            # Sincronizar con base de datos
+            # Sync with database
             if self.db_manager and not isinstance(result, Exception):
-                self.db_manager.actualizar_balance(account_no, acc.get_balance())
+                self.db_manager.update_account(account_no, balance=acc.get_balance())
 
             return result
         except Exception as e:
             return e
 
     def withdraw_from_account(self, account_no, amount):
-        """Retirar de una cuenta"""
+        """Withdraw from an account"""
         try:
             acc = self.get_account(account_no)
             if not acc:
@@ -154,42 +146,42 @@ class BankHerencia:
 
             result = acc.withdraw(amount)
 
-            # Sincronizar con base de datos
+            # Sync with database
             if self.db_manager and not isinstance(result, Exception):
-                self.db_manager.actualizar_balance(account_no, acc.get_balance())
+                self.db_manager.update_account(account_no, balance=acc.get_balance())
 
             return result
         except Exception as e:
             return e
 
-    def modify_account_fields(self, account_no, apellido_paterno=None, apellido_materno=None,
-                             nombre=None, fecha=None, lugar=None):
-        """Modificar campos de una cuenta"""
+    def modify_account_fields(self, account_no, last_name=None, middle_name=None,
+                             first_name=None, date=None, location=None):
+        """Modify account fields"""
         try:
             acc = self.get_account(account_no)
             if not acc:
                 return Exception('Cuenta no encontrada')
 
-            if apellido_paterno is not None:
-                acc.set_apellido_paterno(apellido_paterno)
-            if apellido_materno is not None:
-                acc.set_apellido_materno(apellido_materno)
-            if nombre is not None:
-                acc.set_nombre(nombre)
-            if fecha is not None:
-                acc.set_fecha(fecha)
-            if lugar is not None:
-                acc.set_lugar(lugar)
+            if last_name is not None:
+                acc.set_apellido_paterno(last_name)
+            if middle_name is not None:
+                acc.set_apellido_materno(middle_name)
+            if first_name is not None:
+                acc.set_nombre(first_name)
+            if date is not None:
+                acc.set_fecha(date)
+            if location is not None:
+                acc.set_lugar(location)
 
-            # Sincronizar con base de datos
+            # Sync with database
             if self.db_manager:
-                self.db_manager.actualizar_cuenta(
-                    no_cuenta=account_no,
-                    apellido_paterno=acc.get_apellido_paterno(),
-                    apellido_materno=acc.get_apellido_materno(),
-                    nombre=acc.get_nombre(),
-                    fecha=acc.get_fecha(),
-                    lugar=acc.get_lugar()
+                self.db_manager.update_account(
+                    account_no=account_no,
+                    last_name=acc.get_apellido_paterno(),
+                    middle_name=acc.get_apellido_materno(),
+                    first_name=acc.get_nombre(),
+                    date=acc.get_fecha(),
+                    location=acc.get_lugar()
                 )
 
             return acc
@@ -197,7 +189,7 @@ class BankHerencia:
             return e
 
     def modify_credit(self, account_no, new_credit):
-        """Modificar límite de crédito de una cuenta"""
+        """Modify credit limit of an account"""
         try:
             acc = self.get_account(account_no)
             if not acc:
@@ -207,11 +199,10 @@ class BankHerencia:
 
             acc.set_credit(new_credit)
 
-            # Sincronizar con base de datos
+            # Sync with database
             if self.db_manager:
-                self.db_manager.actualizar_limite_credito(account_no, new_credit)
+                self.db_manager.update_account(account_no, credit_limit=new_credit)
 
             return acc
         except Exception as e:
             return e
-
