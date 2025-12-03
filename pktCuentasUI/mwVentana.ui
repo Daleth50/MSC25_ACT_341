@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>MainWindow</class>
+    <widget class="QMainWindow" name="MainWindow">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>1000</width>
+                <height>600</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>Cuentas</string>
+        </property>
+        <property name="windowIcon">
+            <iconset>
+                <normaloff>../Iconos/user_24.png</normaloff>../Iconos/user_24.png
+            </iconset>
+        </property>
+        <widget class="QWidget" name="centralwidget">
+            <widget class="QLabel" name="lbl_instruction">
+                <property name="geometry">
+                    <rect>
+                        <x>20</x>
+                        <y>20</y>
+                        <width>760</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Haga doble clic en una cuenta para realizar acciones (Depositar / Retirar / Modificar crédito)</string>
+                </property>
+            </widget>
+
+            <widget class="QTableView" name="tbl_accounts">
+                <property name="geometry">
+                    <rect>
+                        <x>20</x>
+                        <y>50</y>
+                        <width>940</width>
+                        <height>480</height>
+                    </rect>
+                </property>
+            </widget>
+        </widget>
+        <widget class="QMenuBar" name="menubar">
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>1000</width>
+                    <height>22</height>
+                </rect>
+            </property>
+            <widget class="QMenu" name="menuFile">
+                <property name="title">
+                    <string>Archivo</string>
+                </property>
+                <addaction name="action_add_2"/>
+                <addaction name="action_delete_2"/>
+                <addaction name="action_search_2"/>
+                <addaction name="separator"/>
+                <addaction name="action_exit_2"/>
+            </widget>
+            <addaction name="menuFile"/>
+        </widget>
+        <widget class="QStatusBar" name="statusbar"/>
+        <widget class="QToolBar" name="toolBar">
+            <addaction name="action_add"/>
+            <addaction name="action_delete"/>
+            <addaction name="action_search"/>
+            <addaction name="separator"/>
+            <addaction name="action_exit"/>
+        </widget>
+        <action name="action_exit">
+            <property name="icon">
+                <iconset>
+                    <normaloff>../Iconos/log_out_24.png</normaloff>../Iconos/log_out_24.png
+                </iconset>
+            </property>
+            <property name="text">
+                <string>Salir</string>
+            </property>
+            <property name="shortcut">
+                <string>Ctrl+Q</string>
+            </property>
+        </action>
+        <action name="action_add">
+            <property name="icon">
+                <iconset>
+                    <normaloff>../Iconos/add_24.png</normaloff>../Iconos/add_24.png
+                </iconset>
+            </property>
+            <property name="text">
+                <string>Agregar</string>
+            </property>
+        </action>
+        <action name="action_delete">
+            <property name="icon">
+                <iconset>
+                    <normaloff>../Iconos/delete_24.png</normaloff>../Iconos/delete_24.png
+                </iconset>
+            </property>
+            <property name="text">
+                <string>Eliminar</string>
+            </property>
+        </action>
+        <action name="action_search">
+            <property name="icon">
+                <iconset>
+                    <normaloff>../Iconos/search_24.png</normaloff>../Iconos/search_24.png
+                </iconset>
+            </property>
+            <property name="text">
+                <string>Buscar</string>
+            </property>
+        </action>
+        <action name="action_add_2">
+            <property name="icon">
+                <iconset>
+                    <normaloff>../Iconos/add_24.png</normaloff>../Iconos/add_24.png
+                </iconset>
+            </property>
+            <property name="text">
+                <string>Agregar</string>
+            </property>
+        </action>
+        <action name="action_delete_2">
+            <property name="icon">
+                <iconset>
+                    <normaloff>../Iconos/delete_24.png</normaloff>../Iconos/delete_24.png
+                </iconset>
+            </property>
+            <property name="text">
+                <string>Eliminar</string>
+            </property>
+        </action>
+        <action name="action_search_2">
+            <property name="icon">
+                <iconset>
+                    <normaloff>../Iconos/search_24.png</normaloff>../Iconos/search_24.png
+                </iconset>
+            </property>
+            <property name="text">
+                <string>Buscar</string>
+            </property>
+        </action>
+        <action name="action_exit_2">
+            <property name="icon">
+                <iconset>
+                    <normaloff>../Iconos/log_out_24.png</normaloff>../Iconos/log_out_24.png
+                </iconset>
+            </property>
+            <property name="text">
+                <string>Salir</string>
+            </property>
+        </action>
+    </widget>
+    <resources/>
+    <connections/>
+</ui>
