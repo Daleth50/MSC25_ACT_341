@@ -1,4 +1,3 @@
-
 import sys
 
 from PyQt5.QtCore import Qt
@@ -8,47 +7,97 @@ from PyQt5.uic import loadUi
 
 from pktCuentas.bank_herencia import BankHerencia
 from pktCuentas.credit_account import CreditAccount
+from pktCuentas.database_manager import DatabaseManager
+from pktCuentas.data_manager import DataManager
+from pktCuentas.analytics import Analytics
+from pktCuentas.charts import ChartGenerator
 from pktCuentasUI.add_account_dialog import AddAccountDialog
+from pktCuentasUI.filter_dialogs import BalanceFilterDialog, AccountTypeFilterDialog, DatePlaceFilterDialog
+from pktCuentasUI.results_dialogs import ChartDialog, FilterResultDialog, ImportResultDialog
 
 
 class Main(QMainWindow):
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
+        super(Main, self).__init__(parent)
         try:
-            super(Main,self).__init__(parent)
-            loadUi('mwVentana.ui',self)
-            self.bank = BankHerencia()
+            loadUi('mwVentana.ui', self)
+
+            # Inicializar DatabaseManager
+            self.db_manager = DatabaseManager()
+            connected = self.db_manager.connect()
+
+            if not connected:
+                QMessageBox.warning(self, 'Advertencia Base de Datos',
+                    'No se pudo conectar a la base de datos MySQL.\n'
+                    'El sistema funcionará en modo local sin persistencia.\n\n'
+                    'Verifique:\n'
+                    '1. MySQL está instalado y corriendo\n'
+                    '2. La base de datos "banco_db" existe (ejecute banco_schema.sql)\n'
+                    '3. Las credenciales en config/database_config.ini son correctas')
+                self.db_manager = None
+
+            # Inicializar Bank con DatabaseManager
+            self.bank = BankHerencia(self.db_manager)
+
             self.setup_table()
             self.setup_events()
             try:
                 self.clear_controls()
             except Exception:
                 pass
-            self.refresh_table()
-        except Exception as e:
-            QMessageBox.critical(self,'Error',str(e))
-
-    def setup_events(self):
-        try:
-            if hasattr(self, 'action_add'):
-                self.action_add.triggered.connect(self.add_row)
-            if hasattr(self, 'action_add_2'):
-                self.action_add_2.triggered.connect(self.add_row)
-            if hasattr(self, 'action_delete'):
-                self.action_delete.triggered.connect(self.delete_selection)
-            if hasattr(self, 'action_delete_2'):
-                self.action_delete_2.triggered.connect(self.delete_selection)
-            if hasattr(self, 'action_search'):
-                self.action_search.triggered.connect(self.search_account)
-            if hasattr(self, 'action_search_2'):
-                self.action_search_2.triggered.connect(self.search_account)
-            if hasattr(self, 'action_exit'):
-                self.action_exit.triggered.connect(self.exit_app)
-            if hasattr(self, 'action_exit_2'):
-                self.action_exit_2.triggered.connect(self.exit_app)
-            if hasattr(self, 'tbl_accounts'):
-                self.tbl_accounts.doubleClicked.connect(self.handle_row_click)
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
+
+    def setup_events(self):
+        # Acciones básicas
+        if hasattr(self, 'action_add'):
+            self.action_add.triggered.connect(self.add_row)
+        if hasattr(self, 'action_delete'):
+            self.action_delete.triggered.connect(self.delete_selection)
+        if hasattr(self, 'action_search'):
+            self.action_search.triggered.connect(self.search_account)
+        if hasattr(self, 'action_search_2'):
+            self.action_search_2.triggered.connect(self.search_account)
+        if hasattr(self, 'action_exit'):
+            self.action_exit.triggered.connect(self.exit_app)
+        if hasattr(self, 'action_exit_2'):
+            self.action_exit_2.triggered.connect(self.exit_app)
+        if hasattr(self, 'tbl_accounts'):
+            self.tbl_accounts.doubleClicked.connect(self.handle_row_click)
+
+        # Acciones para importar/exportar
+        if hasattr(self, 'action_import_csv'):
+            self.action_import_csv.triggered.connect(self.import_csv)
+        if hasattr(self, 'action_export_csv'):
+            self.action_export_csv.triggered.connect(self.export_csv)
+        if hasattr(self, 'action_export_xlsx'):
+            self.action_export_xlsx.triggered.connect(self.export_xlsx)
+
+        # Acciones para filtros
+        if hasattr(self, 'action_filter_balance'):
+            self.action_filter_balance.triggered.connect(self.show_balance_filter)
+        if hasattr(self, 'action_filter_type'):
+            self.action_filter_type.triggered.connect(self.show_type_filter)
+        if hasattr(self, 'action_filter_date_place'):
+            self.action_filter_date_place.triggered.connect(self.show_date_place_filter)
+
+        # Acciones para gráficas
+        if hasattr(self, 'action_chart_balance'):
+            self.action_chart_balance.triggered.connect(self.show_chart_balance)
+        if hasattr(self, 'action_chart_types'):
+            self.action_chart_types.triggered.connect(self.show_chart_types)
+        if hasattr(self, 'action_chart_temporal'):
+            self.action_chart_temporal.triggered.connect(self.show_chart_temporal)
+        if hasattr(self, 'action_chart_credit'):
+            self.action_chart_credit.triggered.connect(self.show_chart_credit)
+
+        # Conexión de botones de la sección de filtros
+        if hasattr(self, 'btnFiltroBalance'):
+            self.btnFiltroBalance.clicked.connect(self.show_balance_filter)
+        if hasattr(self, 'btnFiltroTipo'):
+            self.btnFiltroTipo.clicked.connect(self.show_type_filter)
+        if hasattr(self, 'btnFiltroFechaLugar'):
+            self.btnFiltroFechaLugar.clicked.connect(self.show_date_place_filter)
 
     def setup_table(self):
         self.model = QStandardItemModel(0,6,self)
@@ -70,30 +119,19 @@ class Main(QMainWindow):
                 no = str(acc.get_no_account())
                 client = f"{acc.get_apellido_paterno()} {acc.get_apellido_materno()} {acc.get_nombre()}"
                 balance = f"{acc.get_balance():.2f}"
-                if isinstance(acc, CreditAccount):
-                    acct_type = "Cuenta de Crédito"
-                    credit = f"{acc.get_credit_limit():.2f}" if hasattr(acc, 'get_credit_limit') else ""
-                else:
-                    acct_type = "Cuenta Normal"
-                    credit = ""
-                it_no = QStandardItem(no)
-                it_client = QStandardItem(client)
-                it_balance = QStandardItem(balance)
-                it_type = QStandardItem(acct_type)
-                it_credit = QStandardItem(credit)
-                lugar_text = acc.get_lugar() if hasattr(acc, 'get_lugar') else ''
-                it_place = QStandardItem(lugar_text)
-                it_no.setTextAlignment(Qt.AlignCenter)
-                it_client.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-                it_balance.setTextAlignment(Qt.AlignCenter)
-                it_type.setTextAlignment(Qt.AlignCenter)
-                it_credit.setTextAlignment(Qt.AlignCenter)
-                self.model.appendRow([it_no, it_client, it_balance, it_type, it_credit, it_place])
-            try:
-                if hasattr(self, 'tbl_accounts'):
-                    self.tbl_accounts.resizeColumnsToContents()
-            except Exception:
-                pass
+                account_type = "Crédito" if isinstance(acc, CreditAccount) else "Normal"
+                credit_limit = f"{acc.get_credit_limit():.2f}" if isinstance(acc, CreditAccount) else "N/A"
+                lugar = acc.get_lugar() if hasattr(acc, 'get_lugar') else ""
+
+                row_data = [
+                    QStandardItem(no),
+                    QStandardItem(client),
+                    QStandardItem(balance),
+                    QStandardItem(account_type),
+                    QStandardItem(credit_limit),
+                    QStandardItem(lugar)
+                ]
+                self.model.appendRow(row_data)
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
@@ -287,6 +325,144 @@ class Main(QMainWindow):
             result = QMessageBox.question(self, 'Salir', '¿Está seguro de salir?', QMessageBox.Yes | QMessageBox.No)
             if result == QMessageBox.Yes:
                 QApplication.quit()
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    # Métodos de importación/exportación
+    def import_csv(self):
+        try:
+            from PyQt5.QtWidgets import QFileDialog
+            filename, _ = QFileDialog.getOpenFileName(self, 'Importar CSV', '', 'CSV Files (*.csv);;Excel Files (*.xlsx)')
+            if filename:
+                result = DataManager.import_from_csv(filename, self.db_manager, self.bank)
+                if isinstance(result, Exception):
+                    QMessageBox.critical(self, 'Error', f'Error al importar: {result}')
+                else:
+                    dlg = ImportResultDialog(result, self)
+                    dlg.exec_()
+                    self.refresh_table()
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    def export_csv(self):
+        try:
+            from PyQt5.QtWidgets import QFileDialog
+            filename, _ = QFileDialog.getSaveFileName(self, 'Exportar CSV', '', 'CSV Files (*.csv)')
+            if filename:
+                accounts = self.bank.handle_list_accounts()
+                exito, mensaje = DataManager.export_to_csv(accounts, filename)
+                if not exito:
+                    QMessageBox.critical(self, 'Error', f'Error al exportar: {mensaje}')
+                else:
+                    QMessageBox.information(self, 'Exportar', mensaje)
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    def export_xlsx(self):
+        try:
+            from PyQt5.QtWidgets import QFileDialog
+            filename, _ = QFileDialog.getSaveFileName(self, 'Exportar Excel', '', 'Excel Files (*.xlsx)')
+            if filename:
+                accounts = self.bank.handle_list_accounts()
+                exito, mensaje = DataManager.export_to_xlsx(accounts, filename)
+                if not exito:
+                    QMessageBox.critical(self, 'Error', f'Error al exportar: {mensaje}')
+                else:
+                    QMessageBox.information(self, 'Exportar', mensaje)
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    # Métodos de filtros
+    def show_balance_filter(self):
+        try:
+            dlg = BalanceFilterDialog(self)
+            if dlg.exec_() == QDialog.Accepted:
+                params = dlg.get_filter_params()
+                accounts = self.bank.handle_list_accounts()
+                df = Analytics.cuentas_to_dataframe(accounts)
+                filtered_df = Analytics.filtrar_por_rango_balance(df, params['balance_min'], params['balance_max'])
+                result_dlg = FilterResultDialog(filtered_df, 'Filtro por Saldo', self)
+                result_dlg.exec_()
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    def show_type_filter(self):
+        try:
+            dlg = AccountTypeFilterDialog(self)
+            if dlg.exec_() == QDialog.Accepted:
+                params = dlg.get_filter_params()
+                accounts = self.bank.handle_list_accounts()
+                df = Analytics.cuentas_to_dataframe(accounts)
+                filtered_df = Analytics.filtrar_por_tipo_cuenta(df, params['tipo'])
+                result_dlg = FilterResultDialog(filtered_df, f'Filtro por Tipo: {params["tipo"]}', self)
+                result_dlg.exec_()
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    def show_date_place_filter(self):
+        try:
+            dlg = DatePlaceFilterDialog(self)
+            if dlg.exec_() == QDialog.Accepted:
+                params = dlg.get_filter_params()
+                accounts = self.bank.handle_list_accounts()
+                df = Analytics.cuentas_to_dataframe(accounts)
+                filtered_df = Analytics.filtrar_por_fecha_lugar(
+                    df,
+                    fecha_inicio=params['fecha_inicio'],
+                    fecha_fin=params['fecha_fin'],
+                    lugar=params['lugar']
+                )
+                result_dlg = FilterResultDialog(filtered_df, 'Filtro por Fecha y Lugar', self)
+                result_dlg.exec_()
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    # Métodos de gráficas
+    def show_chart_balance(self):
+        try:
+            chart_gen = ChartGenerator(self.bank)
+            fig = chart_gen.create_balance_distribution_chart()
+            if isinstance(fig, Exception):
+                QMessageBox.critical(self, 'Error', str(fig))
+            else:
+                dlg = ChartDialog(self, fig, 'Distribución de Saldos')
+                dlg.exec_()
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    def show_chart_types(self):
+        try:
+            chart_gen = ChartGenerator(self.bank)
+            fig = chart_gen.create_account_types_chart()
+            if isinstance(fig, Exception):
+                QMessageBox.critical(self, 'Error', str(fig))
+            else:
+                dlg = ChartDialog(self, fig, 'Tipos de Cuenta')
+                dlg.exec_()
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    def show_chart_temporal(self):
+        try:
+            chart_gen = ChartGenerator(self.bank)
+            fig = chart_gen.create_temporal_chart()
+            if isinstance(fig, Exception):
+                QMessageBox.critical(self, 'Error', str(fig))
+            else:
+                dlg = ChartDialog(self, fig, 'Análisis Temporal')
+                dlg.exec_()
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    def show_chart_credit(self):
+        try:
+            chart_gen = ChartGenerator(self.bank)
+            fig = chart_gen.create_credit_usage_chart()
+            if isinstance(fig, Exception):
+                QMessageBox.critical(self, 'Error', str(fig))
+            else:
+                dlg = ChartDialog(self, fig, 'Uso de Crédito')
+                dlg.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
