@@ -1,6 +1,5 @@
 import sys
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDialog, QInputDialog, QApplication
 from PyQt5.uic import loadUi
@@ -14,6 +13,7 @@ from pktCuentas.charts import ChartGenerator
 from pktCuentasUI.add_account_dialog import AddAccountDialog
 from pktCuentasUI.filter_dialogs import BalanceFilterDialog, AccountTypeFilterDialog, DatePlaceFilterDialog
 from pktCuentasUI.results_dialogs import ChartDialog, FilterResultDialog, ImportResultDialog
+from pktCuentasUI.report_dialog import ReportDialog
 
 
 class Main(QMainWindow):
@@ -98,6 +98,8 @@ class Main(QMainWindow):
             self.btnFiltroTipo.clicked.connect(self.show_type_filter)
         if hasattr(self, 'btnFiltroFechaLugar'):
             self.btnFiltroFechaLugar.clicked.connect(self.show_date_place_filter)
+        if hasattr(self, 'btnReportes'):
+            self.btnReportes.clicked.connect(self.show_report_dialog)
 
     def setup_table(self):
         self.model = QStandardItemModel(0,6,self)
@@ -335,12 +337,10 @@ class Main(QMainWindow):
             filename, _ = QFileDialog.getOpenFileName(self, 'Importar CSV', '', 'CSV Files (*.csv);;Excel Files (*.xlsx)')
             if filename:
                 result = DataManager.import_from_csv(filename, self.db_manager, self.bank)
-                if isinstance(result, Exception):
-                    QMessageBox.critical(self, 'Error', f'Error al importar: {result}')
-                else:
-                    dlg = ImportResultDialog(result, self)
-                    dlg.exec_()
-                    self.refresh_table()
+                # Update dialog to use new keys: 'success', 'errors', 'duplicates'
+                dlg = ImportResultDialog(result, self)
+                dlg.exec_()
+                self.refresh_table()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
@@ -420,11 +420,9 @@ class Main(QMainWindow):
     # Métodos de gráficas
     def show_chart_balance(self):
         try:
-            chart_gen = ChartGenerator(self.bank)
-            fig = chart_gen.create_balance_distribution_chart()
-            if isinstance(fig, Exception):
-                QMessageBox.critical(self, 'Error', str(fig))
-            else:
+            chart_gen = ChartGenerator(self.bank.handle_list_accounts())
+            fig = chart_gen.generar_histograma_saldos(self.bank.handle_list_accounts())
+            if fig:
                 dlg = ChartDialog(self, fig, 'Distribución de Saldos')
                 dlg.exec_()
         except Exception as e:
@@ -432,11 +430,9 @@ class Main(QMainWindow):
 
     def show_chart_types(self):
         try:
-            chart_gen = ChartGenerator(self.bank)
-            fig = chart_gen.create_account_types_chart()
-            if isinstance(fig, Exception):
-                QMessageBox.critical(self, 'Error', str(fig))
-            else:
+            chart_gen = ChartGenerator(self.bank.handle_list_accounts())
+            fig = chart_gen.generar_pie_tipos(self.bank.handle_list_accounts())
+            if fig:
                 dlg = ChartDialog(self, fig, 'Tipos de Cuenta')
                 dlg.exec_()
         except Exception as e:
@@ -444,11 +440,9 @@ class Main(QMainWindow):
 
     def show_chart_temporal(self):
         try:
-            chart_gen = ChartGenerator(self.bank)
-            fig = chart_gen.create_temporal_chart()
-            if isinstance(fig, Exception):
-                QMessageBox.critical(self, 'Error', str(fig))
-            else:
+            chart_gen = ChartGenerator(self.bank.handle_list_accounts())
+            fig = chart_gen.generar_linea_temporal(self.bank.handle_list_accounts())
+            if fig:
                 dlg = ChartDialog(self, fig, 'Análisis Temporal')
                 dlg.exec_()
         except Exception as e:
@@ -456,15 +450,37 @@ class Main(QMainWindow):
 
     def show_chart_credit(self):
         try:
-            chart_gen = ChartGenerator(self.bank)
-            fig = chart_gen.create_credit_usage_chart()
-            if isinstance(fig, Exception):
-                QMessageBox.critical(self, 'Error', str(fig))
-            else:
+            chart_gen = ChartGenerator(self.bank.handle_list_accounts())
+            fig = chart_gen.generar_comparacion_credito(self.bank.handle_list_accounts())
+            if fig:
                 dlg = ChartDialog(self, fig, 'Uso de Crédito')
                 dlg.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
+
+    def show_report_dialog(self):
+        dlg = ReportDialog(self)
+        if dlg.exec_() == QDialog.Accepted:
+            selected = dlg.get_selected_report()
+            accounts = self.bank.handle_list_accounts()
+            chart_gen = ChartGenerator()
+            fig = None
+            title = ''
+            if selected == 'hist':
+                fig = chart_gen.generar_histograma_saldos(accounts)
+                title = 'Distribución de Saldos'
+            elif selected == 'pie':
+                fig = chart_gen.generar_pie_tipos(accounts)
+                title = 'Distribución por Tipo de Cuenta'
+            elif selected == 'time':
+                fig = chart_gen.generar_linea_temporal(accounts)
+                title = 'Tendencia Temporal de Apertura de Cuentas'
+            elif selected == 'credit':
+                fig = chart_gen.generar_comparacion_credito(accounts)
+                title = 'Comparación Balance vs Límite de Crédito'
+            if fig:
+                dlg_chart = ChartDialog(fig, title, self)
+                dlg_chart.exec_()
 
 if __name__ == '__main__':
     app=QApplication(sys.argv)

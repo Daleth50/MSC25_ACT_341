@@ -4,12 +4,12 @@ Generación de gráficas con Matplotlib y Seaborn
 Implementa tres tipos de visualizaciones diferentes
 """
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
 from typing import List
-from matplotlib.figure import Figure
+
+import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+from matplotlib.figure import Figure
 
 
 class ChartGenerator:
@@ -103,7 +103,6 @@ class ChartGenerator:
             Figure: Objeto Figure de matplotlib
         """
         from pktCuentas.analytics import Analytics
-        from pktCuentas.credit_account import CreditAccount
 
         ChartGenerator._configure_style()
 
@@ -310,7 +309,6 @@ class ChartGenerator:
             Figure: Objeto Figure de matplotlib
         """
         from pktCuentas.analytics import Analytics
-        from pktCuentas.credit_account import CreditAccount
 
         ChartGenerator._configure_style()
 

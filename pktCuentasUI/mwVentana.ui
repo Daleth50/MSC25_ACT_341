@@ -79,6 +79,21 @@
                             </property>
                         </widget>
                     </item>
+                    <item>
+                        <widget class="QPushButton" name="btnReportes">
+                            <property name="text">
+                                <string>Reportes</string>
+                            </property>
+                            <property name="icon">
+                                <iconset>
+                                    <normaloff>../Iconos/favorites_24.png</normaloff>../Iconos/favorites_24.png
+                                </iconset>
+                            </property>
+                            <property name="toolTip">
+                                <string>Ver reportes y gráficas</string>
+                            </property>
+                        </widget>
+                    </item>
                 </layout>
             </widget>
         </widget>

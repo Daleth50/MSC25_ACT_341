@@ -1,17 +1,17 @@
 """
 Filter Dialogs Module
-Diálogos para filtrar datos con diferentes criterios
+Dialogs for filtering data by different criteria
 """
 
 from PyQt5.QtWidgets import (QDialog, QLabel, QDoubleSpinBox, QComboBox,
                              QDateEdit, QLineEdit, QPushButton, QVBoxLayout,
-                             QHBoxLayout, QGridLayout, QMessageBox, QGroupBox)
+                             QHBoxLayout, QGridLayout, QMessageBox, QGroupBox, QCheckBox)
 from PyQt5.QtCore import QDate
 
 
 class BalanceFilterDialog(QDialog):
     """
-    Diálogo para filtrar cuentas por rango de balance
+    Dialog to filter accounts by balance range
     """
 
     def __init__(self, parent=None):
@@ -21,14 +21,13 @@ class BalanceFilterDialog(QDialog):
         self.setup_ui()
 
     def setup_ui(self):
-        """Configura la interfaz del diálogo"""
         layout = QVBoxLayout()
 
-        # Grupo de filtro
+        # Balance range group
         group = QGroupBox("Rango de Balance")
         grid = QGridLayout()
 
-        # Balance mínimo
+        # Minimum balance
         grid.addWidget(QLabel('Balance Mínimo:'), 0, 0)
         self.spin_min = QDoubleSpinBox()
         self.spin_min.setRange(0.0, 1e12)
@@ -38,7 +37,7 @@ class BalanceFilterDialog(QDialog):
         self.spin_min.setGroupSeparatorShown(True)
         grid.addWidget(self.spin_min, 0, 1)
 
-        # Balance máximo
+        # Maximum balance
         grid.addWidget(QLabel('Balance Máximo:'), 1, 0)
         self.spin_max = QDoubleSpinBox()
         self.spin_max.setRange(0.0, 1e12)
@@ -51,7 +50,7 @@ class BalanceFilterDialog(QDialog):
         group.setLayout(grid)
         layout.addWidget(group)
 
-        # Botones
+        # Buttons
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
@@ -65,28 +64,27 @@ class BalanceFilterDialog(QDialog):
 
         self.setLayout(layout)
 
-        # Conectar señales
+        # Connect signals
         self.btn_apply.clicked.connect(self._on_apply)
         self.btn_cancel.clicked.connect(self.reject)
 
     def _on_apply(self):
-        """Valida y acepta el diálogo"""
+        """Validate and accept the dialog"""
         min_val = self.spin_min.value()
         max_val = self.spin_max.value()
 
         if min_val > max_val:
-            QMessageBox.warning(self, 'Validación',
-                              'El balance mínimo no puede ser mayor que el máximo')
+            QMessageBox.warning(self, 'Validación', 'El balance mínimo no puede ser mayor que el máximo')
             return
 
         self.accept()
 
     def get_filter_params(self) -> dict:
         """
-        Obtiene los parámetros del filtro
+        Get filter parameters
 
         Returns:
-            dict: Diccionario con balance_min y balance_max
+            dict: Dictionary with balance_min and balance_max
         """
         return {
             'balance_min': self.spin_min.value(),
@@ -96,7 +94,7 @@ class BalanceFilterDialog(QDialog):
 
 class AccountTypeFilterDialog(QDialog):
     """
-    Diálogo para filtrar cuentas por tipo
+    Dialog to filter accounts by type
     """
 
     def __init__(self, parent=None):
@@ -106,34 +104,33 @@ class AccountTypeFilterDialog(QDialog):
         self.setup_ui()
 
     def setup_ui(self):
-        """Configura la interfaz del diálogo"""
         layout = QVBoxLayout()
 
-        # Grupo de filtro
+        # Account type group
         group = QGroupBox("Tipo de Cuenta")
         grid = QGridLayout()
 
-        # Combo de tipo
+        # Type combo box
         grid.addWidget(QLabel('Seleccionar Tipo:'), 0, 0)
         self.combo_type = QComboBox()
         self.combo_type.addItems(['Todas', 'Cuentas Normales', 'Cuentas de Crédito'])
         grid.addWidget(self.combo_type, 0, 1)
 
-        # Información adicional
+        # Additional information
         info_label = QLabel(
-            'Filtra las cuentas según su tipo:\n\n'
-            '• Todas: Muestra todas las cuentas\n'
-            '• Cuentas Normales: Solo cuentas sin crédito\n'
-            '• Cuentas de Crédito: Solo cuentas con límite de crédito'
+            'Filter accounts by type:\n\n'
+            '• Todas: Show all accounts\n'
+            '• Cuentas Normales: Only accounts without credit\n'
+            '• Cuentas de Crédito: Only accounts with credit limit'
         )
         info_label.setWordWrap(True)
-        info_label.setStyleSheet('QLabel { padding: 10px; background-color: #ffe082; color: #222; font-weight: bold; border-radius: 5px; }')
+        info_label.setStyleSheet('QLabel { padding: 10px; background-color: #fff; color: #222; font-weight: bold; border-radius: 5px; }')
         grid.addWidget(info_label, 1, 0, 1, 2)
 
         group.setLayout(grid)
         layout.addWidget(group)
 
-        # Botones
+        # Buttons
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
@@ -147,16 +144,16 @@ class AccountTypeFilterDialog(QDialog):
 
         self.setLayout(layout)
 
-        # Conectar señales
+        # Connect signals
         self.btn_apply.clicked.connect(self.accept)
         self.btn_cancel.clicked.connect(self.reject)
 
     def get_filter_params(self) -> dict:
         """
-        Obtiene los parámetros del filtro
+        Get filter parameters
 
         Returns:
-            dict: Diccionario con tipo
+            dict: Dictionary with account type
         """
         tipo_map = {
             0: 'todas',
@@ -171,7 +168,7 @@ class AccountTypeFilterDialog(QDialog):
 
 class DatePlaceFilterDialog(QDialog):
     """
-    Diálogo para filtrar cuentas por fecha y/o lugar
+    Dialog to filter accounts by date and/or place
     """
 
     def __init__(self, parent=None):
@@ -181,14 +178,13 @@ class DatePlaceFilterDialog(QDialog):
         self.setup_ui()
 
     def setup_ui(self):
-        """Configura la interfaz del diálogo"""
         layout = QVBoxLayout()
 
-        # Grupo de fecha
+        # Date range group
         group_fecha = QGroupBox("Rango de Fechas")
         grid_fecha = QGridLayout()
 
-        # Fecha inicio
+        # Start date
         grid_fecha.addWidget(QLabel('Fecha Inicio:'), 0, 0)
         self.date_inicio = QDateEdit()
         self.date_inicio.setCalendarPopup(True)
@@ -196,7 +192,7 @@ class DatePlaceFilterDialog(QDialog):
         self.date_inicio.setDate(QDate.currentDate().addYears(-1))
         grid_fecha.addWidget(self.date_inicio, 0, 1)
 
-        # Fecha fin
+        # End date
         grid_fecha.addWidget(QLabel('Fecha Fin:'), 1, 0)
         self.date_fin = QDateEdit()
         self.date_fin.setCalendarPopup(True)
@@ -204,8 +200,7 @@ class DatePlaceFilterDialog(QDialog):
         self.date_fin.setDate(QDate.currentDate())
         grid_fecha.addWidget(self.date_fin, 1, 1)
 
-        # Checkbox para habilitar filtro de fecha
-        from PyQt5.QtWidgets import QCheckBox
+        # Date filter checkbox
         self.chk_use_dates = QCheckBox('Aplicar filtro de fechas')
         self.chk_use_dates.setChecked(False)
         self.chk_use_dates.toggled.connect(self._toggle_dates)
@@ -214,20 +209,19 @@ class DatePlaceFilterDialog(QDialog):
         group_fecha.setLayout(grid_fecha)
         layout.addWidget(group_fecha)
 
-        # Grupo de lugar
+        # Place group
         group_lugar = QGroupBox("Lugar")
         grid_lugar = QGridLayout()
 
-        # Campo de lugar
+        # Place search field
         grid_lugar.addWidget(QLabel('Buscar en Lugar:'), 0, 0)
         self.le_lugar = QLineEdit()
         self.le_lugar.setPlaceholderText('Ejemplo: Ciudad de México, Guadalajara...')
         grid_lugar.addWidget(self.le_lugar, 0, 1)
 
-        # Información
+        # Information label
         info_label = QLabel(
-            'La búsqueda es sensible a mayúsculas/minúsculas.\n'
-            'Se buscarán coincidencias parciales.'
+            'Search is case sensitive.\nPartial matches will be found.'
         )
         info_label.setWordWrap(True)
         info_label.setStyleSheet('QLabel { padding: 5px; font-size: 9pt; color: #666; }')
@@ -236,7 +230,7 @@ class DatePlaceFilterDialog(QDialog):
         group_lugar.setLayout(grid_lugar)
         layout.addWidget(group_lugar)
 
-        # Botones
+        # Buttons
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
@@ -252,40 +246,38 @@ class DatePlaceFilterDialog(QDialog):
 
         self.setLayout(layout)
 
-        # Estado inicial
+        # Initial state
         self._toggle_dates(False)
 
-        # Conectar señales
+        # Connect signals
         self.btn_apply.clicked.connect(self._on_apply)
         self.btn_cancel.clicked.connect(self.reject)
         self.btn_clear.clicked.connect(self._on_clear)
 
     def _toggle_dates(self, enabled):
-        """Habilita/deshabilita controles de fecha"""
+        """Enable/disable date controls"""
         self.date_inicio.setEnabled(enabled)
         self.date_fin.setEnabled(enabled)
 
     def _on_apply(self):
-        """Valida y acepta el diálogo"""
+        """Validate and accept the dialog"""
         if self.chk_use_dates.isChecked():
             fecha_inicio = self.date_inicio.date()
             fecha_fin = self.date_fin.date()
 
             if fecha_inicio > fecha_fin:
-                QMessageBox.warning(self, 'Validación',
-                                  'La fecha de inicio no puede ser posterior a la fecha fin')
+                QMessageBox.warning(self, 'Validación', 'La fecha de inicio no puede ser posterior a la fecha fin')
                 return
 
-        # Verificar que al menos un filtro esté activo
+        # At least one filter must be active
         if not self.chk_use_dates.isChecked() and not self.le_lugar.text().strip():
-            QMessageBox.information(self, 'Información',
-                                  'Debe activar al menos un filtro (fecha o lugar)')
+            QMessageBox.information(self, 'Información', 'Debe activar al menos un filtro (fecha o lugar)')
             return
 
         self.accept()
 
     def _on_clear(self):
-        """Limpia los controles"""
+        """Clear controls"""
         self.chk_use_dates.setChecked(False)
         self.le_lugar.clear()
         self.date_inicio.setDate(QDate.currentDate().addYears(-1))
@@ -293,10 +285,10 @@ class DatePlaceFilterDialog(QDialog):
 
     def get_filter_params(self) -> dict:
         """
-        Obtiene los parámetros del filtro
+        Get filter parameters
 
         Returns:
-            dict: Diccionario con fecha_inicio, fecha_fin, lugar
+            dict: Dictionary with start_date, end_date, place
         """
         params = {
             'fecha_inicio': None,

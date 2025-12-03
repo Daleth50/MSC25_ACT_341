@@ -4,9 +4,9 @@ Análisis de datos usando Pandas
 Implementa tres filtros diferentes para análisis de cuentas
 """
 
-import pandas as pd
 from typing import List, Optional
-from datetime import datetime
+
+import pandas as pd
 
 
 class Analytics:

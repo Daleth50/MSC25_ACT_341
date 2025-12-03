@@ -1,56 +1,56 @@
 # Sistema de Gestión de Cuentas Bancarias
 
-Sistema completo de gestión de cuentas bancarias con interfaz gráfica PyQt5, persistencia en MySQL, análisis de datos con Pandas y visualización con Matplotlib.
+Sistema completo para la gestión de cuentas bancarias con interfaz gráfica PyQt5, persistencia en MySQL, análisis de datos con Pandas y visualización con Matplotlib.
 
 ## Características
 
-### Funcionalidades Principales
-- ✅ **Gestión de Cuentas**: Crear, editar, eliminar y buscar cuentas bancarias
-- ✅ **Tipos de Cuenta**: Soporte para cuentas normales y cuentas de crédito
-- ✅ **Operaciones Bancarias**: Depósitos y retiros con validaciones
-- ✅ **Base de Datos MySQL**: Persistencia completa de datos con sincronización automática
-- ✅ **Importación/Exportación**: CSV y Excel (XLSX) con validaciones
-- ✅ **Análisis de Datos**: Tres filtros avanzados con Pandas
-- ✅ **Visualizaciones**: Cuatro tipos de gráficas con Matplotlib/Seaborn
+### Funcionalidades principales
+- Gestión de cuentas: crear, editar, eliminar y buscar cuentas bancarias
+- Tipos de cuenta: soporte para cuentas normales y de crédito
+- Operaciones bancarias: depósitos y retiros con validaciones
+- Base de datos MySQL: persistencia total y sincronización automática
+- Importación/Exportación: archivos CSV y Excel (XLSX) con validaciones
+- Análisis de datos: tres filtros avanzados usando Pandas
+- Visualización: cuatro tipos de gráficas con Matplotlib/Seaborn
 
-### Filtros de Análisis (Pandas)
-1. **Filtro por Rango de Balance**: Filtra cuentas entre un saldo mínimo y máximo
-2. **Filtro por Tipo de Cuenta**: Filtra por cuentas normales, de crédito o todas
-3. **Filtro por Fecha y Lugar**: Filtra por rango de fechas y/o ubicación geográfica
+### Filtros de análisis (Pandas)
+1. Filtro por rango de saldo: filtra cuentas entre un saldo mínimo y máximo
+2. Filtro por tipo de cuenta: filtra por cuentas normales, de crédito o todas
+3. Filtro por fecha y lugar: filtra por rango de fechas y/o ubicación geográfica
 
 ### Gráficas (Matplotlib/Seaborn)
-1. **Histograma de Distribución de Saldos**: Muestra la distribución de saldos con estadísticas
-2. **Gráfica de Pastel por Tipo**: Distribución por cantidad y saldo total
-3. **Tendencia Temporal**: Análisis de apertura de cuentas en el tiempo
-4. **Comparación de Crédito**: Balance vs límite de crédito en cuentas de crédito
+1. Histograma de distribución de saldos
+2. Gráfica de pastel por tipo de cuenta
+3. Tendencia temporal de apertura de cuentas
+4. Comparación de saldo vs límite de crédito en cuentas de crédito
 
-## Requisitos del Sistema
+## Requisitos del sistema
 
 - Python 3.8 o superior
 - MySQL Server 5.7 o superior
-- Sistema Operativo: Windows, macOS o Linux
+- Sistema operativo: Windows, macOS o Linux
 
 ## Instalación
 
-### 1. Clonar o Descargar el Proyecto
+### 1. Clonar o descargar el proyecto
 
 ```bash
 cd /ruta/al/proyecto/MSC25_ACT_3.1
 ```
 
-### 2. Crear Entorno Virtual (Recomendado)
+### 2. Crear entorno virtual (recomendado)
 
 ```bash
-# En Windows
+# Windows
 python -m venv .venv
 .venv\Scripts\activate
 
-# En macOS/Linux
+# macOS/Linux
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Instalar Dependencias
+### 3. Instalar dependencias
 
 ```bash
 pip install -r requirements.txt
@@ -59,9 +59,9 @@ pip install -r requirements.txt
 ### 4. Configurar MySQL
 
 #### 4.1 Instalar MySQL Server
-- **Windows**: Descargar de [MySQL.com](https://dev.mysql.com/downloads/mysql/)
-- **macOS**: `brew install mysql`
-- **Linux**: `sudo apt-get install mysql-server`
+- Windows: Descargar desde [MySQL.com](https://dev.mysql.com/downloads/mysql/)
+- macOS: `brew install mysql`
+- Linux: `sudo apt-get install mysql-server`
 
 #### 4.2 Iniciar MySQL
 
@@ -73,29 +73,29 @@ sudo mysql.server start
 net start MySQL
 ```
 
-#### 4.3 Crear la Base de Datos
+#### 4.3 Crear la base de datos
 
-Ejecutar el script SQL proporcionado:
+Ejecuta el script SQL proporcionado:
 
 ```bash
 mysql -u root -p < database/banco_schema.sql
 ```
 
-O desde el cliente MySQL:
+O desde el cliente de MySQL:
 
 ```sql
 mysql -u root -p
 source /ruta/completa/database/banco_schema.sql
 ```
 
-Esto creará:
+Esto crea:
 - Base de datos `banco_db`
 - Tabla `cuentas` con índices optimizados
 - 5 registros de ejemplo para pruebas
 
-### 5. Configurar Credenciales de Base de Datos
+### 5. Configurar credenciales de la base de datos
 
-Editar el archivo `config/database_config.ini`:
+Edita `config/database_config.ini`:
 
 ```ini
 [mysql]
@@ -103,7 +103,7 @@ host = localhost
 port = 3306
 database = banco_db
 user = root
-password = TU_PASSWORD_AQUI
+password = TU_CONTRASEÑA_AQUÍ
 pool_size = 5
 pool_name = banco_pool
 
@@ -114,43 +114,43 @@ default_balance = 1000.0
 default_credit_limit = 500.0
 ```
 
-**IMPORTANTE**: Reemplazar `password` con tu contraseña de MySQL.
+**IMPORTANTE**: Reemplaza `password` por tu contraseña de MySQL.
 
-## Uso del Sistema
+## Uso del sistema
 
-### Ejecutar la Aplicación
+### Ejecutar la aplicación
 
 ```bash
 cd pktCuentasUI
 python main.py
 ```
 
-### Operaciones Básicas
+### Operaciones básicas
 
-#### Agregar Cuenta
-1. Clic en el botón **Agregar** o menú **Archivo → Agregar**
-2. Completar formulario con datos del cliente
-3. Seleccionar tipo de cuenta (Normal o Crédito)
-4. Clic en **Agregar**
+#### Agregar cuenta
+1. Haz clic en **Agregar** o en el menú **Archivo → Agregar**
+2. Llena el formulario del cliente
+3. Selecciona el tipo de cuenta (Normal o Crédito)
+4. Haz clic en **Agregar**
 
-#### Buscar Cuenta
-1. Clic en el botón **Buscar** o menú **Archivo → Buscar**
-2. Ingresar número de cuenta
-3. Ver detalles de la cuenta
+#### Buscar cuenta
+1. Haz clic en **Buscar** o en el menú **Archivo → Buscar**
+2. Ingresa el número de cuenta
+3. Visualiza los detalles de la cuenta
 
-#### Editar/Eliminar Cuenta
-1. Doble clic en una fila de la tabla
-2. Seleccionar operación deseada (Depositar, Retirar, Editar)
-3. Para eliminar: seleccionar fila(s) y clic en **Eliminar**
+#### Editar/Eliminar cuenta
+1. Haz doble clic en una fila de la tabla
+2. Selecciona la operación deseada (Depositar, Retirar, Editar)
+3. Para eliminar: selecciona la(s) fila(s) y haz clic en **Eliminar**
 
-### Importar/Exportar Datos
+### Importar/Exportar datos
 
 #### Importar desde CSV
 1. Menú **Archivo → Importar CSV**
-2. Seleccionar archivo CSV
-3. El sistema validará y mostrará resultados (exitosos, duplicados, errores)
+2. Selecciona el archivo CSV
+3. El sistema validará y mostrará los resultados (éxito, duplicados, errores)
 
-**Formato CSV requerido**:
+**Formato requerido de CSV**:
 ```csv
 no_cuenta,apellido_paterno,apellido_materno,nombre,balance,fecha,lugar,tipo_cuenta,limite_credito
 1010,García,López,Juan,5000.00,2025-01-15,Ciudad de México,normal,0.00
@@ -159,87 +159,86 @@ no_cuenta,apellido_paterno,apellido_materno,nombre,balance,fecha,lugar,tipo_cuen
 
 #### Exportar a CSV/Excel
 1. Menú **Archivo → Exportar CSV** o **Exportar Excel**
-2. Elegir ubicación y nombre de archivo
-3. Confirmar exportación
+2. Elige ubicación y nombre de archivo
+3. Confirma la exportación
 
-### Aplicar Filtros
+### Aplicar filtros
 
-#### Filtro por Balance
+#### Filtro por saldo
 1. Menú **Análisis → Filtrar por Balance**
-2. Ingresar balance mínimo y máximo
-3. Ver resultados con estadísticas
-4. Opcionalmente exportar resultados
+2. Ingresa el saldo mínimo y máximo
+3. Visualiza los resultados y estadísticas
+4. Opcionalmente exporta los resultados
 
-#### Filtro por Tipo
+#### Filtro por tipo
 1. Menú **Análisis → Filtrar por Tipo**
-2. Seleccionar tipo de cuenta
-3. Ver resultados
+2. Selecciona el tipo de cuenta
+3. Visualiza los resultados
 
-#### Filtro por Fecha/Lugar
+#### Filtro por fecha/lugar
 1. Menú **Análisis → Filtrar por Fecha y Lugar**
-2. Activar filtro de fechas y/o ingresar lugar
-3. Ver resultados
+2. Activa el filtro de fechas y/o ingresa el lugar
+3. Visualiza los resultados
 
-### Visualizar Gráficas
+### Visualizar gráficas
 
-1. Menú **Gráficas → [Tipo de Gráfica]**
-2. Esperar generación de gráfica
-3. Usar toolbar para zoom, pan, etc.
-4. Guardar imagen (PNG, PDF, SVG)
+1. Menú **Gráficas → [Tipo de gráfica]**
+2. Espera la generación de la gráfica
+3. Guarda la imagen (PNG, PDF, SVG)
 
-## Estructura del Proyecto
+## Estructura del proyecto
 
 ```
 MSC25_ACT_3.1/
 ├── config/
-│   └── database_config.ini          # Configuración de BD
+│   └── database_config.ini          # Configuración de la base de datos
 ├── database/
-│   └── banco_schema.sql              # Script SQL de inicialización
-├── exports/                          # Carpeta para exportaciones (creada automáticamente)
-├── Iconos/                           # Iconos de la interfaz
-├── pktCuentas/                       # Lógica de negocio
-│   ├── account.py                    # Clase Account base
-│   ├── credit_account.py             # Clase CreditAccount
-│   ├── bank_herencia.py              # Gestor de cuentas (actualizado)
-│   ├── database_manager.py           # Gestor de MySQL (nuevo)
-│   ├── data_manager.py               # Importar/Exportar CSV/XLSX (nuevo)
-│   ├── analytics.py                  # Filtros con Pandas (nuevo)
-│   └── charts.py                     # Gráficas con Matplotlib (nuevo)
-├── pktCuentasUI/                     # Interfaz gráfica
-│   ├── main.py                       # Ventana principal (actualizada)
-│   ├── mwVentana.ui                  # Diseño Qt
-│   ├── add_account_dialog.py        # Diálogo agregar/editar
-│   ├── filter_dialogs.py            # Diálogos de filtros (nuevo)
-│   └── results_dialogs.py           # Diálogos de resultados (nuevo)
-├── requirements.txt                  # Dependencias Python
-└── README.md                         # Este archivo
+│   └── banco_schema.sql            # Script de inicialización SQL
+├── exports/                        # Carpeta de exportación (se crea automáticamente)
+├── Iconos/                         # Iconos de la interfaz
+├── pktCuentas/                     # Lógica de negocio
+│   ├── account.py                  # Clase base de cuenta
+│   ├── credit_account.py           # Clase de cuenta de crédito
+│   ├── bank_herencia.py            # Gestor de cuentas
+│   ├── database_manager.py         # Gestor MySQL
+│   ├── data_manager.py             # Importación/exportación CSV/XLSX
+│   ├── analytics.py                # Filtros con Pandas
+│   └── charts.py                   # Gráficas con Matplotlib
+├── pktCuentasUI/                   # Interfaz gráfica
+│   ├── main.py                     # Ventana principal
+│   ├── mwVentana.ui                # Diseño Qt
+│   ├── add_account_dialog.py       # Diálogo de agregar/editar
+│   ├── filter_dialogs.py           # Diálogos de filtros
+│   └── results_dialogs.py          # Diálogos de resultados
+├── requirements.txt                # Dependencias de Python
+└── README.md                       # Este archivo
 ```
 
-## Arquitectura del Sistema
+## Arquitectura del sistema
 
-### Patrón de Diseño
-- **Singleton**: `DatabaseManager` usa patrón Singleton para gestión de conexiones
-- **MVC**: Separación entre lógica de negocio (`pktCuentas`) y presentación (`pktCuentasUI`)
-- **Pool de Conexiones**: MySQL connection pooling para rendimiento
+### Patrones de diseño
+- Singleton: `DatabaseManager` usa Singleton para la gestión de conexiones
+- MVC: Separación entre lógica de negocio (`pktCuentas`) y presentación (`pktCuentasUI`)
+- Pool de conexiones: Pool de conexiones MySQL para mejor rendimiento
 
-### Flujo de Datos
-1. **Usuario** → **UI (PyQt5)** → **Bank Manager** → **Database Manager** → **MySQL**
+### Flujo de datos
+1. Usuario → Interfaz (PyQt5) → Gestor de cuentas → Gestor de base de datos → MySQL
 2. Sincronización automática entre memoria y base de datos
 3. Validaciones en múltiples capas
 
-### Mejores Prácticas Implementadas
-✅ Separación de responsabilidades (SoC)
-✅ Manejo robusto de excepciones
-✅ Validación de datos en entrada
-✅ Transacciones de BD con rollback
-✅ Código documentado con docstrings
-✅ Gestión de recursos (conexiones, cursores)
-✅ Feedback visual al usuario (cursores de espera)
-✅ Configuración externalizada (INI)
+### Buenas prácticas
+- Separación de responsabilidades
+- Manejo robusto de excepciones
+- Validación de datos de entrada
+- Transacciones con rollback
+- Código documentado con docstrings
+- Gestión de recursos (conexiones, cursores)
+- Retroalimentación visual al usuario
+- Configuración externa (INI)
 
-## Base de Datos
+## Base de datos
 
-### Esquema de la Tabla `cuentas`
+### Esquema de la tabla `cuentas`
 
 | Campo            | Tipo             | Descripción                    |
 |------------------|------------------|--------------------------------|
@@ -253,27 +252,27 @@ MSC25_ACT_3.1/
 | lugar            | VARCHAR(200)     | Lugar de apertura              |
 | tipo_cuenta      | ENUM             | 'normal' o 'credit'            |
 | limite_credito   | DECIMAL(15,2)    | Límite de crédito (si aplica)  |
-| created_at       | TIMESTAMP        | Fecha de creación del registro |
+| created_at       | TIMESTAMP        | Fecha de creación              |
 | updated_at       | TIMESTAMP        | Fecha de última actualización  |
 
 ### Índices
-- `idx_no_cuenta`: Para búsquedas rápidas por número de cuenta
-- `idx_tipo_cuenta`: Para filtros por tipo
-- `idx_fecha`: Para filtros temporales
-- `idx_apellido_paterno`: Para búsquedas por nombre
+- `idx_no_cuenta`: Búsqueda rápida por número de cuenta
+- `idx_tipo_cuenta`: Filtros por tipo
+- `idx_fecha`: Filtros temporales
+- `idx_apellido_paterno`: Búsqueda por nombre
 
-## Solución de Problemas
+## Solución de problemas
 
-### Error: "No se pudo conectar a la base de datos"
+### Error: "No se puede conectar a la base de datos"
 
 **Causa**: MySQL no está corriendo o credenciales incorrectas
 
 **Solución**:
-1. Verificar que MySQL esté corriendo: `mysql.server status`
-2. Verificar credenciales en `config/database_config.ini`
-3. Probar conexión manual: `mysql -u root -p`
+1. Verifica que MySQL esté corriendo: `mysql.server status`
+2. Verifica credenciales en `config/database_config.ini`
+3. Prueba la conexión manual: `mysql -u root -p`
 
-### Error: "Table 'cuentas' doesn't exist"
+### Error: "La tabla 'cuentas' no existe"
 
 **Causa**: No se ejecutó el script SQL
 
@@ -282,16 +281,16 @@ MSC25_ACT_3.1/
 mysql -u root -p < database/banco_schema.sql
 ```
 
-### Error al importar módulos de Python
+### Error de importación de módulos Python
 
-**Causa**: Dependencias no instaladas
+**Causa**: No se instalaron las dependencias
 
 **Solución**:
 ```bash
 pip install -r requirements.txt
 ```
 
-### Gráficas no se muestran correctamente
+### Las gráficas no se muestran correctamente
 
 **Causa**: Backend de matplotlib incorrecto
 
@@ -310,4 +309,3 @@ pip install --upgrade matplotlib PyQt5
 ## Licencia
 
 Este proyecto es para fines educativos.
-

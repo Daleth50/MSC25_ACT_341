@@ -1,6 +1,4 @@
 -- Banco Database Schema
--- Sistema de Gestión de Cuentas Bancarias
--- Fecha: 2025-12-02
 
 -- Crear base de datos si no existe
 CREATE DATABASE IF NOT EXISTS banco_db

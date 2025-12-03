@@ -1,6 +1,6 @@
 """
 Data Manager Module
-Gestiona importación y exportación de datos CSV/XLSX
+Manages import and export of CSV/XLSX data
 """
 
 import pandas as pd
@@ -10,299 +10,297 @@ import os
 
 class DataManager:
     """
-    Gestor de importación y exportación de datos
-    Maneja archivos CSV y XLSX
+    Data import/export manager for CSV/XLSX files
     """
 
     @staticmethod
     def import_from_csv(file_path: str, db_manager, bank) -> Dict:
         """
-        Importa cuentas desde un archivo CSV
-        Valida datos e inserta en la base de datos
+        Import accounts from a CSV file
+        Validates data and inserts into the database
 
         Args:
-            file_path: Ruta del archivo CSV
-            db_manager: Instancia de DatabaseManager
-            bank: Instancia de BankHerencia
+            file_path: Path to the CSV file
+            db_manager: DatabaseManager instance
+            bank: BankHerencia instance
 
         Returns:
             Dict: {
-                'exitosos': int,
-                'errores': List[str],
-                'duplicados': List[int]
+                'success': int,
+                'errors': List[str],
+                'duplicates': List[int]
             }
         """
-        resultado = {
-            'exitosos': 0,
-            'errores': [],
-            'duplicados': []
+        result = {
+            'success': 0,
+            'errors': [],
+            'duplicates': []
         }
 
         try:
-            # Leer archivo CSV
+            # Read CSV file
             df = pd.read_csv(file_path)
 
-            # Validar columnas requeridas
-            columnas_requeridas = ['no_cuenta', 'apellido_paterno', 'apellido_materno',
-                                  'nombre', 'balance']
-            columnas_faltantes = [col for col in columnas_requeridas if col not in df.columns]
+            # Validate required columns
+            required_columns = ['account_no', 'last_name', 'middle_name', 'first_name', 'balance']
+            missing_columns = [col for col in required_columns if col not in df.columns]
 
-            if columnas_faltantes:
-                resultado['errores'].append(
-                    f"Columnas faltantes en CSV: {', '.join(columnas_faltantes)}"
+            if missing_columns:
+                result['errors'].append(
+                    f"Missing columns in CSV: {', '.join(missing_columns)}"
                 )
-                return resultado
+                return result
 
-            # Columnas opcionales
-            if 'fecha' not in df.columns:
-                df['fecha'] = None
-            if 'lugar' not in df.columns:
-                df['lugar'] = ''
-            if 'tipo_cuenta' not in df.columns:
-                df['tipo_cuenta'] = 'normal'
-            if 'limite_credito' not in df.columns:
-                df['limite_credito'] = 0.0
+            # Optional columns
+            if 'date' not in df.columns:
+                df['date'] = None
+            if 'location' not in df.columns:
+                df['location'] = ''
+            if 'account_type' not in df.columns:
+                df['account_type'] = 'normal'
+            if 'credit_limit' not in df.columns:
+                df['credit_limit'] = 0.0
 
-            # Procesar cada fila
+            # Process each row
             for idx, row in df.iterrows():
                 try:
-                    # Validar número de cuenta
+                    # Validate account number
                     try:
-                        no_cuenta = int(row['no_cuenta'])
+                        account_no = int(row['account_no'])
                     except (ValueError, TypeError):
-                        resultado['errores'].append(
-                            f"Fila {idx + 2}: Número de cuenta inválido '{row['no_cuenta']}'"
+                        result['errors'].append(
+                            f"Row {idx + 2}: Invalid account number '{row['account_no']}'"
                         )
                         continue
 
-                    # Validar que no_cuenta sea positivo
-                    if no_cuenta <= 0:
-                        resultado['errores'].append(
-                            f"Fila {idx + 2}: Número de cuenta debe ser positivo"
+                    # Validate positive account number
+                    if account_no <= 0:
+                        result['errors'].append(
+                            f"Row {idx + 2}: Account number must be positive"
                         )
                         continue
 
-                    # Validar nombres no vacíos
-                    apellido_paterno = str(row['apellido_paterno']).strip()
-                    apellido_materno = str(row['apellido_materno']).strip()
-                    nombre = str(row['nombre']).strip()
+                    # Validate non-empty names
+                    last_name = str(row['last_name']).strip()
+                    middle_name = str(row['middle_name']).strip()
+                    first_name = str(row['first_name']).strip()
 
-                    if not apellido_paterno or apellido_paterno == 'nan':
-                        resultado['errores'].append(
-                            f"Fila {idx + 2}: Apellido paterno vacío"
+                    if not last_name or last_name == 'nan':
+                        result['errors'].append(
+                            f"Row {idx + 2}: Last name is empty"
                         )
                         continue
 
-                    if not apellido_materno or apellido_materno == 'nan':
-                        resultado['errores'].append(
-                            f"Fila {idx + 2}: Apellido materno vacío"
+                    if not middle_name or middle_name == 'nan':
+                        result['errors'].append(
+                            f"Row {idx + 2}: Middle name is empty"
                         )
                         continue
 
-                    if not nombre or nombre == 'nan':
-                        resultado['errores'].append(
-                            f"Fila {idx + 2}: Nombre vacío"
+                    if not first_name or first_name == 'nan':
+                        result['errors'].append(
+                            f"Row {idx + 2}: First name is empty"
                         )
                         continue
 
-                    # Validar balance
+                    # Validate balance
                     try:
                         balance = float(row['balance'])
                         if balance < 0:
-                            resultado['errores'].append(
-                                f"Fila {idx + 2}: Balance no puede ser negativo"
+                            result['errors'].append(
+                                f"Row {idx + 2}: Balance cannot be negative"
                             )
                             continue
                     except (ValueError, TypeError):
-                        resultado['errores'].append(
-                            f"Fila {idx + 2}: Balance inválido '{row['balance']}'"
+                        result['errors'].append(
+                            f"Row {idx + 2}: Invalid balance '{row['balance']}'"
                         )
                         continue
 
-                    # Validar fecha (puede ser None)
-                    fecha = None
-                    if pd.notna(row['fecha']):
+                    # Validate date (can be None)
+                    date = None
+                    if pd.notna(row['date']):
                         try:
-                            # Intentar parsear fecha
-                            fecha_parsed = pd.to_datetime(row['fecha'])
-                            fecha = fecha_parsed.strftime('%Y-%m-%d')
+                            # Try to parse date
+                            date_parsed = pd.to_datetime(row['date'])
+                            date = date_parsed.strftime('%Y-%m-%d')
                         except:
-                            resultado['errores'].append(
-                                f"Fila {idx + 2}: Formato de fecha inválido '{row['fecha']}'"
+                            result['errors'].append(
+                                f"Row {idx + 2}: Invalid date format '{row['date']}'"
                             )
                             continue
 
-                    # Validar lugar
-                    lugar = str(row['lugar']).strip() if pd.notna(row['lugar']) else ''
-                    if lugar == 'nan':
-                        lugar = ''
+                    # Validate location
+                    location = str(row['location']).strip() if pd.notna(row['location']) else ''
+                    if location == 'nan':
+                        location = ''
 
-                    # Validar tipo_cuenta
-                    tipo_cuenta = str(row['tipo_cuenta']).strip().lower()
-                    if tipo_cuenta not in ['normal', 'credit']:
-                        tipo_cuenta = 'normal'
+                    # Validate account_type
+                    account_type = str(row['account_type']).strip().lower()
+                    if account_type not in ['normal', 'credit']:
+                        account_type = 'normal'
 
-                    # Validar límite de crédito
+                    # Validate credit limit
                     try:
-                        limite_credito = float(row['limite_credito']) if pd.notna(row['limite_credito']) else 0.0
-                        if limite_credito < 0:
-                            limite_credito = 0.0
+                        credit_limit = float(row['credit_limit']) if pd.notna(row['credit_limit']) else 0.0
+                        if credit_limit < 0:
+                            credit_limit = 0.0
                     except:
-                        limite_credito = 0.0
+                        credit_limit = 0.0
 
-                    # Si hay conexión a BD, validar duplicados en BD
+                    # If connected to DB, validate duplicates in DB
                     if db_manager:
-                        if db_manager.validar_cuenta_existe(no_cuenta):
-                            resultado['duplicados'].append(no_cuenta)
+                        if db_manager.account_exists(account_no):
+                            result['duplicates'].append(account_no)
                             continue
-                        # Insertar en base de datos
-                        exito, mensaje = db_manager.insertar_cuenta(
-                            no_cuenta=no_cuenta,
-                            apellido_paterno=apellido_paterno,
-                            apellido_materno=apellido_materno,
-                            nombre=nombre,
+                        # Insert into database
+                        success, message = db_manager.insert_account(
+                            account_no=account_no,
+                            last_name=last_name,
+                            middle_name=middle_name,
+                            first_name=first_name,
                             balance=balance,
-                            fecha=fecha,
-                            lugar=lugar,
-                            tipo_cuenta=tipo_cuenta,
-                            limite_credito=limite_credito
+                            date=date,
+                            location=location,
+                            account_type=account_type,
+                            credit_limit=credit_limit
                         )
 
-                        if exito:
-                            resultado['exitosos'] += 1
+                        if success:
+                            result['success'] += 1
                         else:
-                            resultado['errores'].append(
-                                f"Fila {idx + 2}, Cuenta {no_cuenta}: {mensaje}"
+                            result['errors'].append(
+                                f"Row {idx + 2}, Account {account_no}: {message}"
                             )
                     else:
-                        # Modo local: validar duplicados en self.accounts
-                        if bank.get_account(no_cuenta):
-                            resultado['duplicados'].append(no_cuenta)
+                        # Local mode: validate duplicates in self.accounts
+                        if bank.get_account(account_no):
+                            result['duplicates'].append(account_no)
                             continue
-                        if tipo_cuenta == 'credit':
+                        if account_type == 'credit':
                             from pktCuentas.credit_account import CreditAccount
-                            account = CreditAccount(no_cuenta, apellido_paterno, apellido_materno, nombre, balance, fecha, lugar)
-                            if limite_credito > 0:
-                                account.set_credit(limite_credito)
+                            account = CreditAccount(account_no, last_name, middle_name, first_name, balance, date, location)
+                            if credit_limit > 0:
+                                account.set_credit(credit_limit)
                         else:
                             from pktCuentas.account import Account
-                            account = Account(no_cuenta, apellido_paterno, apellido_materno, nombre, balance, fecha, lugar)
+                            account = Account(account_no, last_name, middle_name, first_name, balance, date, location)
                         bank.accounts.append(account)
-                        resultado['exitosos'] += 1
+                        result['success'] += 1
                 except Exception as e:
-                    resultado['errores'].append(
-                        f"Fila {idx + 2}: Error inesperado - {str(e)}"
+                    result['errors'].append(
+                        f"Row {idx + 2}: Unexpected error - {str(e)}"
                     )
 
-            # Recargar cuentas en bank si hay BD
-            if db_manager and resultado['exitosos'] > 0:
+            # Reload accounts in bank if DB is used
+            if db_manager and result['success'] > 0:
                 bank.load_from_database()
 
         except FileNotFoundError:
-            resultado['errores'].append(f"Archivo no encontrado: {file_path}")
+            result['errors'].append(f"File not found: {file_path}")
         except pd.errors.EmptyDataError:
-            resultado['errores'].append("El archivo CSV está vacío")
+            result['errors'].append("CSV file is empty")
         except Exception as e:
-            resultado['errores'].append(f"Error al leer CSV: {str(e)}")
+            result['errors'].append(f"Error reading CSV: {str(e)}")
 
-        return resultado
+        return result
 
     @staticmethod
     def export_to_csv(accounts: List, file_path: str) -> Tuple[bool, str]:
         """
-        Exporta cuentas a un archivo CSV
+        Exports accounts to a CSV file
 
         Args:
-            accounts: Lista de objetos Account
-            file_path: Ruta del archivo CSV a crear
+            accounts: List of Account objects
+            file_path: Path to the CSV file to create
 
         Returns:
-            Tuple[bool, str]: (éxito, mensaje)
+            Tuple[bool, str]: (success, message)
         """
         try:
-            # Crear directorio si no existe
+            # Create directory if it doesn't exist
             directory = os.path.dirname(file_path)
             if directory and not os.path.exists(directory):
                 os.makedirs(directory)
 
-            # Convertir cuentas a lista de diccionarios
+            # Convert accounts to list of dictionaries
             data = []
             for acc in accounts:
                 from pktCuentas.credit_account import CreditAccount
 
-                tipo_cuenta = 'credit' if isinstance(acc, CreditAccount) else 'normal'
-                limite_credito = acc.get_credit_limit() if isinstance(acc, CreditAccount) else 0.0
+                account_type = 'credit' if isinstance(acc, CreditAccount) else 'normal'
+                credit_limit = acc.get_credit_limit() if isinstance(acc, CreditAccount) else 0.0
 
                 data.append({
-                    'no_cuenta': acc.get_no_account(),
-                    'apellido_paterno': acc.get_apellido_paterno(),
-                    'apellido_materno': acc.get_apellido_materno(),
-                    'nombre': acc.get_nombre(),
+                    'account_no': acc.get_no_account(),
+                    'last_name': acc.get_apellido_paterno(),
+                    'middle_name': acc.get_apellido_materno(),
+                    'first_name': acc.get_nombre(),
                     'balance': acc.get_balance(),
-                    'fecha': acc.get_fecha() if acc.get_fecha() else '',
-                    'lugar': acc.get_lugar() if acc.get_lugar() else '',
-                    'tipo_cuenta': tipo_cuenta,
-                    'limite_credito': limite_credito
+                    'date': acc.get_fecha() if acc.get_fecha() else '',
+                    'location': acc.get_lugar() if acc.get_lugar() else '',
+                    'account_type': account_type,
+                    'credit_limit': credit_limit
                 })
 
-            # Crear DataFrame y exportar
+            # Create DataFrame and export
             df = pd.DataFrame(data)
             df.to_csv(file_path, index=False, encoding='utf-8-sig')
 
-            return True, f"Datos exportados exitosamente a {file_path}"
+            return True, f"Data successfully exported to {file_path}"
 
         except Exception as e:
-            return False, f"Error al exportar a CSV: {str(e)}"
+            return False, f"Error exporting to CSV: {str(e)}"
 
     @staticmethod
     def export_to_xlsx(accounts: List, file_path: str) -> Tuple[bool, str]:
         """
-        Exporta cuentas a un archivo Excel (XLSX)
+        Exports accounts to an Excel (XLSX) file
 
         Args:
-            accounts: Lista de objetos Account
-            file_path: Ruta del archivo XLSX a crear
+            accounts: List of Account objects
+            file_path: Path to the XLSX file to create
 
         Returns:
-            Tuple[bool, str]: (éxito, mensaje)
+            Tuple[bool, str]: (success, message)
         """
         try:
-            # Crear directorio si no existe
+            # Create directory if it doesn't exist
             directory = os.path.dirname(file_path)
             if directory and not os.path.exists(directory):
                 os.makedirs(directory)
 
-            # Convertir cuentas a lista de diccionarios
+            # Convert accounts to list of dictionaries
             data = []
             for acc in accounts:
                 from pktCuentas.credit_account import CreditAccount
 
-                tipo_cuenta = 'Cuenta de Crédito' if isinstance(acc, CreditAccount) else 'Cuenta Normal'
-                limite_credito = acc.get_credit_limit() if isinstance(acc, CreditAccount) else 0.0
+                account_type = 'Credit Account' if isinstance(acc, CreditAccount) else 'Normal Account'
+                credit_limit = acc.get_credit_limit() if isinstance(acc, CreditAccount) else 0.0
 
                 data.append({
-                    'No. Cuenta': acc.get_no_account(),
-                    'Apellido Paterno': acc.get_apellido_paterno(),
-                    'Apellido Materno': acc.get_apellido_materno(),
-                    'Nombre': acc.get_nombre(),
+                    'Account No.': acc.get_no_account(),
+                    'Last Name': acc.get_apellido_paterno(),
+                    'Middle Name': acc.get_apellido_materno(),
+                    'First Name': acc.get_nombre(),
                     'Balance': acc.get_balance(),
-                    'Fecha': acc.get_fecha() if acc.get_fecha() else '',
-                    'Lugar': acc.get_lugar() if acc.get_lugar() else '',
-                    'Tipo de Cuenta': tipo_cuenta,
-                    'Límite de Crédito': limite_credito
+                    'Date': acc.get_fecha() if acc.get_fecha() else '',
+                    'Location': acc.get_lugar() if acc.get_lugar() else '',
+                    'Account Type': account_type,
+                    'Credit Limit': credit_limit
                 })
 
-            # Crear DataFrame y exportar
+            # Create DataFrame and export
             df = pd.DataFrame(data)
 
-            # Exportar con formato
+            # Export with formatting
             with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False, sheet_name='Cuentas')
+                df.to_excel(writer, index=False, sheet_name='Accounts')
 
-                # Obtener worksheet para aplicar formato
-                worksheet = writer.sheets['Cuentas']
+                # Get worksheet to apply formatting
+                worksheet = writer.sheets['Accounts']
 
-                # Ajustar ancho de columnas
+                # Adjust column widths
                 for column in worksheet.columns:
                     max_length = 0
                     column_letter = column[0].column_letter
@@ -315,7 +313,7 @@ class DataManager:
                     adjusted_width = min(max_length + 2, 50)
                     worksheet.column_dimensions[column_letter].width = adjusted_width
 
-            return True, f"Datos exportados exitosamente a {file_path}"
+            return True, f"Data successfully exported to {file_path}"
 
         except Exception as e:
-            return False, f"Error al exportar a Excel: {str(e)}"
+            return False, f"Error exporting to Excel: {str(e)}"
