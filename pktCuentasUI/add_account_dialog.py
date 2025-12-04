@@ -80,10 +80,10 @@ class AddAccountDialog(QDialog):
         self.setLayout(layout)
 
         self._on_type_changed(self.combo_type.currentIndex())
-        self.combo_type.currentIndexChanged.connect(self._on_type_changed)  # type: ignore[attr-defined]
+        self.combo_type.currentIndexChanged.connect(self._on_type_changed)
 
-        self.btn_add.clicked.connect(self._on_add_clicked)  # type: ignore[attr-defined]
-        self.btn_cancel.clicked.connect(self.reject)  # type: ignore[attr-defined]
+        self.btn_add.clicked.connect(self._on_add_clicked)
+        self.btn_cancel.clicked.connect(self.reject)
 
     def _on_type_changed(self, idx):
         if idx == 1:

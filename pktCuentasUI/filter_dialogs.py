@@ -173,7 +173,6 @@ class PlaceFilterDialog(QDialog):
                 self.place_combo_box.addItem(s)
 
     def _on_apply(self):
-        # At least one filter must be active
         if self.place_combo_box.currentText().strip().lower() in (''):
             QMessageBox.information(self, 'Información', 'Debe seleccionar un lugar o cancelar')
             return

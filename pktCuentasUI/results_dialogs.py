@@ -178,7 +178,6 @@ class FilterResultDialog(QDialog):
         )
         if file_path:
             try:
-                # Export using English column convention used across project
                 df_export = self.df[[
                     'account_no', 'last_name', 'middle_name', 'first_name',
                     'balance', 'date', 'location', 'account_type', 'credit_limit'
