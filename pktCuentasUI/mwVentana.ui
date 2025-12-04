@@ -114,6 +114,7 @@
                 <addaction name="action_delete_2"/>
                 <addaction name="action_search_2"/>
                 <addaction name="action_import_csv"/>
+                <addaction name="action_import_xlsx"/>
                 <addaction name="separator"/>
                 <addaction name="action_exit_2"/>
             </widget>
@@ -126,6 +127,7 @@
             <addaction name="action_search"/>
             <addaction name="separator"/>
             <addaction name="action_import_csv"/>
+            <addaction name="action_import_xlsx"/>
             <addaction name="action_exit"/>
         </widget>
         <action name="action_exit">
@@ -214,11 +216,21 @@
         <action name="action_import_csv">
             <property name="icon">
                 <iconset>
-                    <normaloff>../Iconos/upload_24.png</normaloff>../Iconos/upload_24.png
+                    <normaloff>../Iconos/csv.png</normaloff>../Iconos/csv.png
                 </iconset>
             </property>
             <property name="text">
                 <string>Importar CSV</string>
+            </property>
+        </action>
+        <action name="action_import_xlsx">
+            <property name="icon">
+                <iconset>
+                    <normaloff>../Iconos/xlsx.png</normaloff>../Iconos/xlsx.png
+                </iconset>
+            </property>
+            <property name="text">
+                <string>Importar Excel</string>
             </property>
         </action>
     </widget>

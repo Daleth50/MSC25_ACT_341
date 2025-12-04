@@ -25,12 +25,12 @@ class Main(QMainWindow):
             connected = self.db_manager.connect()
             if not connected:
                 QMessageBox.warning(self, 'Advertencia Base de Datos',
-                    'No se pudo conectar a la base de datos MySQL.\n'
-                    'El sistema funcionará en modo local sin persistencia.\n\n'
-                    'Verifique:\n'
-                    '1. MySQL está instalado y corriendo\n'
-                    '2. La base de datos "banco_db" existe (ejecute banco_schema.sql)\n'
-                    '3. Las credenciales en config/database_config.ini son correctas')
+                                    'No se pudo conectar a la base de datos MySQL.\n'
+                                    'El sistema funcionará en modo local sin persistencia.\n\n'
+                                    'Verifique:\n'
+                                    '1. MySQL está instalado y corriendo\n'
+                                    '2. La base de datos "banco_db" existe (ejecute banco_schema.sql)\n'
+                                    '3. Las credenciales en config/database_config.ini son correctas')
                 self.db_manager = None
             self.bank = BankManager(self.db_manager)
             self.setup_table()
@@ -64,6 +64,8 @@ class Main(QMainWindow):
         # Acciones para importar/exportar
         if hasattr(self, 'action_import_csv'):
             self.action_import_csv.triggered.connect(self.import_csv)
+        if hasattr(self, 'action_import_xlsx'):
+            self.action_import_xlsx.triggered.connect(self.import_xlsx)
         if hasattr(self, 'action_export_csv'):
             self.action_export_csv.triggered.connect(self.export_csv)
         if hasattr(self, 'action_export_xlsx'):
@@ -96,8 +98,8 @@ class Main(QMainWindow):
             self.btnReportes.clicked.connect(self.show_report_dialog)
 
     def setup_table(self):
-        self.model = QStandardItemModel(0,6,self)
-        self.model.setHorizontalHeaderLabels(['Cuenta','Cliente','Saldo','Tipo','Crédito','Lugar'])
+        self.model = QStandardItemModel(0, 6, self)
+        self.model.setHorizontalHeaderLabels(['Cuenta', 'Cliente', 'Saldo', 'Tipo', 'Crédito', 'Lugar'])
         if hasattr(self, 'tbl_accounts'):
             self.tbl_accounts.setModel(self.model)
             self.tbl_accounts.setSelectionBehavior(self.tbl_accounts.SelectRows)
@@ -110,7 +112,8 @@ class Main(QMainWindow):
     def refresh_table(self):
         try:
             self.model.removeRows(0, self.model.rowCount())
-            accounts = self.bank.handle_list_accounts() if hasattr(self.bank, 'handle_list_accounts') else list(self.bank.accounts)
+            accounts = self.bank.handle_list_accounts() if hasattr(self.bank, 'handle_list_accounts') else list(
+                self.bank.accounts)
             for acc in accounts:
                 no = str(acc.get_account_number())
                 client = f"{acc.get_last_name()} {acc.get_maternal_last_name()} {acc.get_first_name()}"
@@ -146,9 +149,10 @@ class Main(QMainWindow):
                 credit = data['credit_limit']
                 account_type = data['account_type']
                 if self.bank.get_account(account_no):
-                    QMessageBox.information(self,'Duplicado',f'La cuenta {account_no} ya existe')
+                    QMessageBox.information(self, 'Duplicado', f'La cuenta {account_no} ya existe')
                     return
-                account = self.bank.handle_add_account(account_no, last_name, middle_name, first_name, account_type, inicial_balance, date, location, credit)
+                account = self.bank.handle_add_account(account_no, last_name, middle_name, first_name, account_type,
+                                                       inicial_balance, date, location, credit)
                 if isinstance(account, Exception):
                     QMessageBox.critical(self, 'Error', str(account))
                     return
@@ -158,7 +162,7 @@ class Main(QMainWindow):
 
     def find_row_by_account(self, account_no):
         for row in range(self.model.rowCount()):
-            if self.model.item(row,0).text() == str(account_no):
+            if self.model.item(row, 0).text() == str(account_no):
                 return row
         return -1
 
@@ -200,14 +204,14 @@ class Main(QMainWindow):
                     info_lines.append("Tipo: Cuenta Normal")
                 QMessageBox.information(self, 'Cuenta encontrada', '\n'.join(info_lines))
             else:
-                QMessageBox.information(self,'No Encontrado',f'La cuenta {account_no} no se encuentra')
+                QMessageBox.information(self, 'No Encontrado', f'La cuenta {account_no} no se encuentra')
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
     def handle_row_click(self, index):
         try:
             row = index.row()
-            account_no = int(self.model.item(row,0).text())
+            account_no = int(self.model.item(row, 0).text())
             account = self.bank.get_account(account_no)
             if not account:
                 QMessageBox.information(self, 'Error', 'Cuenta no encontrada')
@@ -255,7 +259,8 @@ class Main(QMainWindow):
                         'balance': account.get_balance(),
                         'date': account.get_date() if hasattr(account, 'get_date') else None,
                         'location': account.get_place() if hasattr(account, 'get_place') else '',
-                        'credit_limit': account.get_credit_limit() if isinstance(account, CreditAccount) and hasattr(account, 'get_credit_limit') else 0.0,
+                        'credit_limit': account.get_credit_limit() if isinstance(account, CreditAccount) and hasattr(
+                            account, 'get_credit_limit') else 0.0,
                         'account_type': 'credit' if isinstance(account, CreditAccount) else 'normal'
                     }
                     edit_dlg = AddAccountDialog(self, data=dlg_data, edit_mode=True)
@@ -263,11 +268,11 @@ class Main(QMainWindow):
                         newdata = edit_dlg.get_data()
                         # pass English-named fields to BankManager.modify_account_fields
                         res = self.bank.modify_account_fields(account_no,
-                                                             last_name=newdata.get('last_name'),
-                                                             middle_name=newdata.get('middle_name'),
-                                                             first_name=newdata.get('first_name'),
-                                                             date=newdata.get('date'),
-                                                             location=newdata.get('location'))
+                                                              last_name=newdata.get('last_name'),
+                                                              middle_name=newdata.get('middle_name'),
+                                                              first_name=newdata.get('first_name'),
+                                                              date=newdata.get('date'),
+                                                              location=newdata.get('location'))
                         if isinstance(res, Exception):
                             QMessageBox.critical(self, 'Error', str(res))
                         else:
@@ -284,7 +289,8 @@ class Main(QMainWindow):
                 except Exception as e:
                     QMessageBox.critical(self, 'Error', str(e))
             elif btn_credit is not None and clicked == btn_credit:
-                new_credit, ok = QInputDialog.getDouble(self, 'Modificar Crédito', 'Ingrese nuevo límite de crédito:', account.get_credit_limit(), 0.0, 1e12, 2)
+                new_credit, ok = QInputDialog.getDouble(self, 'Modificar Crédito', 'Ingrese nuevo límite de crédito:',
+                                                        account.get_credit_limit(), 0.0, 1e12, 2)
                 if ok:
                     res = self.bank.modify_credit(account_no, new_credit)
                     if isinstance(res, Exception):
@@ -302,9 +308,10 @@ class Main(QMainWindow):
             else:
                 selection = []
             if not selection:
-                QMessageBox.information(self,'Eliminar','No hay cuentas seleccionadas')
+                QMessageBox.information(self, 'Eliminar', 'No hay cuentas seleccionadas')
                 return
-            resultado = QMessageBox.question(self, 'Eliminar','¿Está seguro de eliminar las cuentas seleccionadas?', QMessageBox.Yes|QMessageBox.No)
+            resultado = QMessageBox.question(self, 'Eliminar', '¿Está seguro de eliminar las cuentas seleccionadas?',
+                                             QMessageBox.Yes | QMessageBox.No)
             if resultado == QMessageBox.Yes:
                 nums = [int(self.model.item(idx.row(), 0).text()) for idx in selection]
                 for account_no in nums:
@@ -324,13 +331,44 @@ class Main(QMainWindow):
                 QApplication.quit()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
+
     def import_csv(self):
         try:
             from PyQt5.QtWidgets import QFileDialog
-            filename, _ = QFileDialog.getOpenFileName(self, 'Importar CSV', '', 'CSV Files (*.csv);;Excel Files (*.xlsx)')
+            # Ensure CSV filter is selected by default. Use a non-native dialog
+            # when needed so selectedFilter is respected on macOS.
+            opts = QFileDialog.Options()
+            opts |= QFileDialog.DontUseNativeDialog
+            filename, _ = QFileDialog.getOpenFileName(self, 'Importar CSV', '',
+                                                      'CSV Files (*.csv);;Excel Files (*.xlsx)',
+                                                      'CSV Files (*.csv)', options=opts)
             if filename:
-                result = DataManager.import_from_csv(filename, self.db_manager, self.bank)
+                # Dispatch to the correct importer based on file extension
+                if filename.lower().endswith('.xlsx'):
+                    result = DataManager.import_from_xlsx(filename, self.db_manager, self.bank)
+                else:
+                    result = DataManager.import_from_csv(filename, self.db_manager, self.bank)
                 # Update dialog to use new keys: 'success', 'errors', 'duplicates'
+                dlg = ImportResultDialog(result, self)
+                dlg.exec_()
+                self.refresh_table()
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    def import_xlsx(self):
+        try:
+            from PyQt5.QtWidgets import QFileDialog
+            # Force Excel filter as selectedFilter to ensure default on all platforms.
+            opts = QFileDialog.Options()
+            opts |= QFileDialog.DontUseNativeDialog
+            filename, _ = QFileDialog.getOpenFileName(self, 'Importar Excel', '',
+                                                      'Excel Files (*.xlsx);;CSV Files (*.csv)',
+                                                      'Excel Files (*.xlsx)', options=opts)
+            if filename:
+                if filename.lower().endswith('.xlsx'):
+                    result = DataManager.import_from_xlsx(filename, self.db_manager, self.bank)
+                else:
+                    result = DataManager.import_from_csv(filename, self.db_manager, self.bank)
                 dlg = ImportResultDialog(result, self)
                 dlg.exec_()
                 self.refresh_table()
@@ -477,8 +515,9 @@ class Main(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
+
 if __name__ == '__main__':
-    app=QApplication(sys.argv)
-    objVentana=Main()
+    app = QApplication(sys.argv)
+    objVentana = Main()
     objVentana.show()
     app.exec()
