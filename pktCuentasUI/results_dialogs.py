@@ -1,15 +1,13 @@
+import pandas as pd
+from PyQt5.QtCore import QPoint, Qt
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
-                             QTableWidget, QTableWidgetItem, QLabel, QTextEdit,
+                             QTableWidget, QTableWidgetItem, QLabel,
                              QGroupBox, QHeaderView, QMessageBox, QFileDialog)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import pandas as pd
 
 
 class ChartDialog(QDialog):
-    """
-    Dialog to show Matplotlib charts
-    """
-
     def __init__(self, figure, title="Chart", parent=None):
         super().__init__(parent)
         self.setWindowTitle(title)
@@ -53,15 +51,10 @@ class ChartDialog(QDialog):
 
 
 class FilterResultDialog(QDialog):
-    """
-    Dialog to show filter results (expects DataFrame columns in English)
-    """
-
     def __init__(self, df, filter_name, parent=None):
         super().__init__(parent)
         self.setWindowTitle(f'Resultados: {filter_name}')
         self.setMinimumSize(1000, 600)
-        # Expect df to have English column names across the project
         self.df = pd.DataFrame() if df is None else df.copy()
         self.filter_name = filter_name
         self.setup_ui()
@@ -73,7 +66,8 @@ class FilterResultDialog(QDialog):
         stats_text = self._generate_statistics()
         stats_label = QLabel(stats_text)
         stats_label.setWordWrap(True)
-        stats_label.setStyleSheet('QLabel { padding: 10px; background-color: #fff; color: #222; font-weight: bold; border-radius: 5px; }')
+        stats_label.setStyleSheet(
+            'QLabel { padding: 10px; background-color: #fff; color: #222; font-weight: bold; border-radius: 5px; }')
         stats_layout.addWidget(stats_label)
         stats_group.setLayout(stats_layout)
         layout.addWidget(stats_group)
@@ -99,7 +93,6 @@ class FilterResultDialog(QDialog):
         from pktCuentas.analytics import Analytics
         if self.df.empty:
             return "No se encontraron resultados para este filtro."
-        # Analytics expects English column names (balance, account_type, credit_limit)
         stats = Analytics.get_statistics(self.df)
         text = f"<b>Total de cuentas:</b> {stats.get('total_accounts', 0)}<br>"
         text += f"<b>Balance total:</b> ${stats.get('total_balance', 0.0):,.2f}<br>"
@@ -123,13 +116,11 @@ class FilterResultDialog(QDialog):
         self.table.setColumnCount(len(columns))
         self.table.setHorizontalHeaderLabels(columns)
         self.table.setRowCount(len(self.df))
-        # Use integer indexes to satisfy QTableWidget API and avoid ambiguous Series truth checks
+
         for i in range(len(self.df)):
             row = self.df.iloc[i]
-            # account number
             acct_no = row.get('account_no', '')
             self.table.setItem(i, 0, QTableWidgetItem(str(acct_no)))
-            # full name: prefer full_name, else compose
             full_name = row.get('full_name') if 'full_name' in self.df.columns else None
             if not full_name:
                 parts = []
@@ -138,17 +129,14 @@ class FilterResultDialog(QDialog):
                         parts.append(str(row.get(k)).strip())
                 full_name = ' '.join(parts).strip()
             self.table.setItem(i, 1, QTableWidgetItem(full_name if full_name else ''))
-            # balance
             bal = row.get('balance', 0.0)
             try:
                 bal = float(bal)
             except Exception:
                 bal = 0.0
             self.table.setItem(i, 2, QTableWidgetItem(f"${bal:,.2f}"))
-            # type
             tipo_text = 'Crédito' if str(row.get('account_type', '')).lower() == 'credit' else 'Normal'
             self.table.setItem(i, 3, QTableWidgetItem(tipo_text))
-            # credit limit
             credit_limit = row.get('credit_limit', 0.0)
             try:
                 credit_limit = float(credit_limit)
@@ -156,9 +144,7 @@ class FilterResultDialog(QDialog):
                 credit_limit = 0.0
             credito_text = f"${credit_limit:,.2f}" if str(row.get('account_type', '')).lower() == 'credit' else 'N/A'
             self.table.setItem(i, 4, QTableWidgetItem(credito_text))
-            # date
             date_val = row.get('date', None)
-            date_text = ''
             try:
                 if pd.isna(date_val) or date_val is None or str(date_val) == '':
                     date_text = 'N/A'
@@ -171,7 +157,6 @@ class FilterResultDialog(QDialog):
             except Exception:
                 date_text = 'N/A'
             self.table.setItem(i, 5, QTableWidgetItem(date_text))
-            # location
             loc = row.get('location', '') if 'location' in self.df.columns and row.get('location') else ''
             self.table.setItem(i, 6, QTableWidgetItem(loc))
         header = self.table.horizontalHeader()
@@ -205,60 +190,68 @@ class FilterResultDialog(QDialog):
 
 
 class ImportResultDialog(QDialog):
-    """
-    Dialog to show CSV import results
-    """
-
     def __init__(self, resultado, parent=None):
         super().__init__(parent)
+        self.resultado = resultado or {}
         self.setWindowTitle('Resultado de Importación')
-        self.setMinimumSize(600, 400)
-        self.resultado = resultado
-        self.setup_ui()
 
-    def setup_ui(self):
-        layout = QVBoxLayout()
-        summary_group = QGroupBox("Resumen de Importación")
-        summary_layout = QVBoxLayout()
+    def exec_(self):
         success = self.resultado.get('success', 0)
-        duplicates = len(self.resultado.get('duplicates', []))
-        errors = len(self.resultado.get('errors', []))
+        duplicates_list = self.resultado.get('duplicates', [])
+        errors_list = self.resultado.get('errors', [])
+        duplicates = len(duplicates_list)
+        errors = len(errors_list)
         total = success + duplicates + errors
-        summary_text = f"""
-        <b>Total de registros procesados:</b> {total}<br>
-        <b style='color: green;'>Registros importados exitosamente:</b> {success}<br>
-        <b style='color: orange;'>Registros duplicados (omitidos):</b> {duplicates}<br>
-        <b style='color: red;'>Registros con errores:</b> {errors}
-        """
-        summary_label = QLabel(summary_text)
-        summary_label.setWordWrap(True)
-        summary_label.setStyleSheet('QLabel { padding: 15px; background-color: #fff; color: #222; font-weight: bold; border-radius: 5px; }')
-        summary_layout.addWidget(summary_label)
-        summary_group.setLayout(summary_layout)
-        layout.addWidget(summary_group)
-        if duplicates > 0 or errors > 0:
-            details_group = QGroupBox("Detalles")
-            details_layout = QVBoxLayout()
-            self.details_text = QTextEdit()
-            self.details_text.setReadOnly(True)
-            details_content = ""
-            if duplicates > 0:
-                details_content += "<b>Cuentas Duplicadas:</b><br>"
-                for account_no in self.resultado.get('duplicates', []):
-                    details_content += f"  • La cuenta {account_no} ya existe<br>"
-                details_content += "<br>"
-            if errors > 0:
-                details_content += "<b>Errores Encontrados:</b><br>"
-                for error in self.resultado.get('errors', []):
-                    details_content += f"  • {error}<br>"
-            self.details_text.setHtml(details_content)
-            details_layout.addWidget(self.details_text)
-            details_group.setLayout(details_layout)
-            layout.addWidget(details_group)
-        btn_layout = QHBoxLayout()
-        btn_layout.addStretch()
-        self.btn_close = QPushButton('Cerrar')
-        btn_layout.addWidget(self.btn_close)
-        layout.addLayout(btn_layout)
-        self.setLayout(layout)
-        self.btn_close.clicked.connect(self.accept)
+
+        summary = (
+            f"Total registros procesados: {total}\n"
+            f"Importados exitosamente: {success}\n"
+            f"Duplicados (omitidos): {duplicates}\n"
+            f"Errores: {errors}"
+        )
+
+        details = []
+        if duplicates > 0:
+            details.append('Cuentas duplicadas:')
+            details.extend(str(x) for x in duplicates_list)
+        if errors > 0:
+            details.append('Errores encontrados:')
+            details.extend(str(x) for x in errors_list)
+
+        detailed_text = "\n".join(details) if details else ''
+        parent_widget = None
+        if self.parent() is not None:
+            try:
+                parent_widget = self.parent().window()
+            except Exception:
+                parent_widget = self.parent()
+        if parent_widget is None:
+            parent_widget = QApplication.activeWindow()
+
+        msg = QMessageBox(parent_widget)
+        if errors > 0:
+            msg.setIcon(QMessageBox.Critical)
+        elif duplicates > 0:
+            msg.setIcon(QMessageBox.Warning)
+        else:
+            msg.setIcon(QMessageBox.Information)
+        msg.setWindowTitle(self.windowTitle())
+        msg.setText(summary)
+        if detailed_text:
+            msg.setDetailedText(detailed_text)
+        msg.setStandardButtons(QMessageBox.Ok)
+
+        try:
+            if parent_widget is not None:
+                msg.setWindowModality(Qt.WindowModal)
+                parent_geo = parent_widget.frameGeometry()
+                parent_center = parent_geo.center()
+                size = msg.sizeHint()
+                top_left = QPoint(parent_center.x() - size.width() // 2,
+                                  parent_center.y() - size.height() // 2)
+                msg.move(top_left)
+        except Exception:
+            pass
+
+        msg.exec_()
+        return QDialog.Accepted

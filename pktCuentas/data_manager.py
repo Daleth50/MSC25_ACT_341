@@ -14,10 +14,7 @@ class DataManager:
         }
 
         try:
-            # Read CSV file
             df = pd.read_csv(file_path)
-
-            # Validate required columns
             required_columns = ['account_no', 'last_name', 'middle_name', 'first_name', 'balance']
             missing_columns = [col for col in required_columns if col not in df.columns]
 
@@ -26,8 +23,6 @@ class DataManager:
                     f"Missing columns in CSV: {', '.join(missing_columns)}"
                 )
                 return result
-
-            # Optional columns
             if 'date' not in df.columns:
                 df['date'] = None
             if 'location' not in df.columns:
@@ -167,10 +162,8 @@ class DataManager:
                     result['errors'].append(
                         f"Row {idx + 2}: Unexpected error - {str(e)}"
                     )
-
-            # Reload accounts in bank if DB is used
             if db_manager and result['success'] > 0:
-                bank.load_from_database()
+                bank.reload_from_database()
 
         except FileNotFoundError:
             result['errors'].append(f"File not found: {file_path}")
@@ -206,8 +199,6 @@ class DataManager:
                     'account_type': account_type,
                     'credit_limit': credit_limit
                 })
-
-            # Create DataFrame and export
             df = pd.DataFrame(data)
             df.to_csv(file_path, index=False, encoding='utf-8-sig')
 
@@ -219,12 +210,9 @@ class DataManager:
     @staticmethod
     def export_to_xlsx(accounts: List, file_path: str) -> Tuple[bool, str]:
         try:
-            # Create directory if it doesn't exist
             directory = os.path.dirname(file_path)
             if directory and not os.path.exists(directory):
                 os.makedirs(directory)
-
-            # Convert accounts to list of dictionaries
             data = []
             for acc in accounts:
                 from pktCuentas.credit_account import CreditAccount

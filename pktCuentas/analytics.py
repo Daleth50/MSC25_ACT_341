@@ -41,19 +41,33 @@ class Analytics:
         return df[df['account_type'] == acc_type]
 
     @staticmethod
-    def filter_by_date_location(df: pd.DataFrame, date_start: Optional[str] = None,
-                                date_end: Optional[str] = None,
-                                location: Optional[str] = None) -> pd.DataFrame:
-        if df.empty:
+    def filter_by_location(df: pd.DataFrame, location: Optional[str] = None) -> pd.DataFrame:
+        if df.empty or 'location' not in df.columns:
             return df
-        filtered = df
-        if date_start:
-            filtered = filtered[filtered['date'] >= pd.to_datetime(date_start)]
-        if date_end:
-            filtered = filtered[filtered['date'] <= pd.to_datetime(date_end)]
-        if location:
-            filtered = filtered[filtered['location'].str.contains(location, case=False, na=False)]
-        return filtered
+        if not location:
+            return df
+        loc = str(location).strip()
+        if loc == '' or loc.lower() in ('all', 'todas'):
+            return df
+        # Match location case-insensitively and trim whitespace
+        return df[df['location'].astype(str).str.strip().str.lower() == loc.lower()]
+
+    @staticmethod
+    def get_location_options(df: pd.DataFrame) -> List[str]:
+        if df is None or df.empty or 'location' not in df.columns:
+            return []
+        # Extract unique, non-empty, trimmed location strings and sort them
+        locs = (df['location'].astype(str)
+                    .dropna()
+                    .map(lambda s: s.strip())
+                    .replace('', pd.NA)
+                    .dropna()
+                    .unique()
+                )
+        try:
+            return sorted([str(x) for x in locs])
+        except Exception:
+            return [str(x) for x in locs]
 
     @staticmethod
     def get_statistics(df: pd.DataFrame) -> dict:

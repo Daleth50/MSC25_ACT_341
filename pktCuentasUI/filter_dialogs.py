@@ -143,10 +143,11 @@ class AccountTypeFilterDialog(QDialog):
 
 class DatePlaceFilterDialog(QDialog):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, locations: list | None = None):
         super().__init__(parent)
         self.setWindowTitle('Filtrar por Fecha y Lugar')
         self.setMinimumWidth(450)
+        self._locations = locations or []
         self.setup_ui()
 
     def setup_ui(self):
@@ -185,15 +186,15 @@ class DatePlaceFilterDialog(QDialog):
         group_lugar = QGroupBox("Lugar")
         grid_lugar = QGridLayout()
 
-        # Place search field
-        grid_lugar.addWidget(QLabel('Buscar en Lugar:'), 0, 0)
-        self.le_lugar = QLineEdit()
-        self.le_lugar.setPlaceholderText('Ejemplo: Ciudad de México, Guadalajara...')
-        grid_lugar.addWidget(self.le_lugar, 0, 1)
+        # Replace free-text input with a combo box populated from provided locations
+        grid_lugar.addWidget(QLabel('Seleccionar Lugar:'), 0, 0)
+        self.combo_lugar = QComboBox()
+        self.combo_lugar.setEditable(False)
+        grid_lugar.addWidget(self.combo_lugar, 0, 1)
 
         # Information label
         info_label = QLabel(
-            'Search is case sensitive.\nPartial matches will be found.'
+            'Seleccione una ubicación del listado. Use "Todas" para no filtrar por lugar.'
         )
         info_label.setWordWrap(True)
         info_label.setStyleSheet('QLabel { padding: 5px; font-size: 9pt; color: #666; }')
@@ -226,6 +227,24 @@ class DatePlaceFilterDialog(QDialog):
         self.btn_cancel.clicked.connect(self.reject)
         self.btn_clear.clicked.connect(self._on_clear)
 
+        # Populate combo with provided locations
+        self.set_location_options(self._locations)
+
+    def set_location_options(self, locations: list):
+        self.combo_lugar.clear()
+        # Add a neutral option 'Todas'
+        self.combo_lugar.addItem('Todas')
+        if not locations:
+            return
+        for loc in locations:
+            if loc is None:
+                continue
+            s = str(loc).strip()
+            if s == '' or s.lower() == 'todas' or s.lower() == 'todas las ubicaciones':
+                continue
+            if s not in [self.combo_lugar.itemText(i) for i in range(self.combo_lugar.count())]:
+                self.combo_lugar.addItem(s)
+
     def _toggle_dates(self, enabled):
         self.date_inicio.setEnabled(enabled)
         self.date_fin.setEnabled(enabled)
@@ -240,7 +259,7 @@ class DatePlaceFilterDialog(QDialog):
                 return
 
         # At least one filter must be active
-        if not self.chk_use_dates.isChecked() and not self.le_lugar.text().strip():
+        if not self.chk_use_dates.isChecked() and (self.combo_lugar.currentText().strip().lower() in ('', 'todas')):
             QMessageBox.information(self, 'Información', 'Debe activar al menos un filtro (fecha o lugar)')
             return
 
@@ -248,7 +267,9 @@ class DatePlaceFilterDialog(QDialog):
 
     def _on_clear(self):
         self.chk_use_dates.setChecked(False)
-        self.le_lugar.clear()
+        # Reset combo to 'Todas'
+        if self.combo_lugar.count() > 0:
+            self.combo_lugar.setCurrentIndex(0)
         self.date_inicio.setDate(QDate.currentDate().addYears(-1))
         self.date_fin.setDate(QDate.currentDate())
 
@@ -263,7 +284,8 @@ class DatePlaceFilterDialog(QDialog):
             params['fecha_inicio'] = self.date_inicio.date().toString('yyyy-MM-dd')
             params['fecha_fin'] = self.date_fin.date().toString('yyyy-MM-dd')
 
-        if self.le_lugar.text().strip():
-            params['lugar'] = self.le_lugar.text().strip()
+        sel = self.combo_lugar.currentText().strip()
+        if sel and sel.lower() not in ('todas', ''):
+            params['lugar'] = sel
 
         return params

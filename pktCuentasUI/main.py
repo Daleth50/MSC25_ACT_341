@@ -397,86 +397,63 @@ class Main(QMainWindow):
 
     def show_date_place_filter(self):
         try:
-            dlg = DatePlaceFilterDialog(self)
+            accounts = self.bank.handle_list_accounts()
+            df = Analytics.accounts_to_dataframe(accounts)
+            loc_options = Analytics.get_location_options(df)
+            dlg = DatePlaceFilterDialog(self, locations=loc_options)
             if dlg.exec_() == QDialog.Accepted:
                 params = dlg.get_filter_params()
                 accounts = self.bank.handle_list_accounts()
                 df = Analytics.accounts_to_dataframe(accounts)
-                filtered_df = Analytics.filter_by_date_location(
-                    df,
-                    date_start=params['fecha_inicio'],
-                    date_end=params['fecha_fin'],
-                    location=params['lugar']
-                )
+                filtered_df = Analytics.filter_by_location(df, location=params['lugar'])
                 result_dlg = FilterResultDialog(filtered_df, 'Filtro por Fecha y Lugar', self)
                 result_dlg.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
-    # Métodos de gráficas
     def show_chart_balance(self):
         try:
-            chart_gen = ChartGenerator()
-            fig = chart_gen.generate_balance_histogram(self.bank.handle_list_accounts())
-            if fig:
-                dlg = ChartDialog(fig, 'Distribución de Saldos', self)
-                dlg.exec_()
+            accounts = self.bank.handle_list_accounts()
+            df = Analytics.accounts_to_dataframe(accounts)
+            chart = ChartGenerator.bar_chart(df, 'Cuenta', 'Saldo', 'Gráfico de Saldo por Cuenta')
+            chart.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
     def show_chart_types(self):
         try:
-            chart_gen = ChartGenerator()
-            fig = chart_gen.generate_account_type_pie(self.bank.handle_list_accounts())
-            if fig:
-                dlg = ChartDialog(fig, 'Tipos de Cuenta', self)
-                dlg.exec_()
+            accounts = self.bank.handle_list_accounts()
+            df = Analytics.accounts_to_dataframe(accounts)
+            chart = ChartGenerator.pie_chart(df, 'Tipo', 'Cuenta', 'Distribución de Tipos de Cuenta')
+            chart.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
     def show_chart_temporal(self):
         try:
-            chart_gen = ChartGenerator()
-            fig = chart_gen.generate_temporal_trend(self.bank.handle_list_accounts())
-            if fig:
-                dlg = ChartDialog(fig, 'Análisis Temporal', self)
-                dlg.exec_()
+            accounts = self.bank.handle_list_accounts()
+            df = Analytics.accounts_to_dataframe(accounts)
+            chart = ChartGenerator.line_chart(df, 'Fecha', 'Saldo', 'Evolución del Saldo en el Tiempo')
+            chart.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
     def show_chart_credit(self):
         try:
-            chart_gen = ChartGenerator()
-            fig = chart_gen.generate_credit_comparison(self.bank.handle_list_accounts())
-            if fig:
-                dlg = ChartDialog(fig, 'Uso de Crédito', self)
-                dlg.exec_()
+            accounts = self.bank.handle_list_accounts()
+            df = Analytics.accounts_to_dataframe(accounts)
+            filtered_df = df[df['Tipo'] == 'Crédito']
+            chart = ChartGenerator.bar_chart(filtered_df, 'Cuenta', 'Crédito', 'Créditos por Cuenta')
+            chart.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
     def show_report_dialog(self):
-        dlg = ReportDialog(self)
-        if dlg.exec_() == QDialog.Accepted:
-            selected = dlg.get_selected_report()
-            accounts = self.bank.handle_list_accounts()
-            chart_gen = ChartGenerator()
-            fig = None
-            title = ''
-            if selected == 'hist':
-                fig = chart_gen.generate_balance_histogram(accounts)
-                title = 'Distribución de Saldos'
-            elif selected == 'pie':
-                fig = chart_gen.generate_account_type_pie(accounts)
-                title = 'Distribución por Tipo de Cuenta'
-            elif selected == 'time':
-                fig = chart_gen.generate_temporal_trend(accounts)
-                title = 'Tendencia Temporal de Apertura de Cuentas'
-            elif selected == 'credit':
-                fig = chart_gen.generate_credit_comparison(accounts)
-                title = 'Comparación Balance vs Límite de Crédito'
-            if fig:
-                dlg_chart = ChartDialog(fig, title, self)
-                dlg_chart.exec_()
+        try:
+            dlg = ReportDialog(self)
+            dlg.exec_()
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
 
 if __name__ == '__main__':
     app=QApplication(sys.argv)
