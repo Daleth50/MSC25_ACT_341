@@ -117,7 +117,7 @@ class AccountTypeFilterDialog(QDialog):
         }
 
 
-class DatePlaceFilterDialog(QDialog):
+class PlaceFilterDialog(QDialog):
     def __init__(self, parent=None, locations: list | None = None):
         super().__init__(parent)
         self.setWindowTitle('Filtrar por Lugar')
@@ -130,12 +130,12 @@ class DatePlaceFilterDialog(QDialog):
         group_lugar = QGroupBox("Lugar")
         grid_lugar = QGridLayout()
         grid_lugar.addWidget(QLabel('Seleccionar Lugar:'), 0, 0)
-        self.combo_lugar = QComboBox()
-        self.combo_lugar.setEditable(False)
-        grid_lugar.addWidget(self.combo_lugar, 0, 1)
+        self.place_combo_box = QComboBox()
+        self.place_combo_box.setEditable(False)
+        grid_lugar.addWidget(self.place_combo_box, 0, 1)
 
         info_label = QLabel(
-            'Seleccione una ubicación del listado. Use "Todas" para no filtrar por lugar.'
+            'Seleccione una ubicación del listado.'
         )
         info_label.setWordWrap(True)
         info_label.setStyleSheet('QLabel { padding: 5px; font-size: 9pt; color: #666; }')
@@ -162,38 +162,34 @@ class DatePlaceFilterDialog(QDialog):
         self.set_location_options(self._locations)
 
     def set_location_options(self, locations: list):
-        self.combo_lugar.clear()
-        self.combo_lugar.addItem('Todas')
+        self.place_combo_box.clear()
         if not locations:
             return
         for loc in locations:
             if loc is None:
                 continue
             s = str(loc).strip()
-            if s == '' or s.lower() == 'todas' or s.lower() == 'todas las ubicaciones':
-                continue
-            if s not in [self.combo_lugar.itemText(i) for i in range(self.combo_lugar.count())]:
-                self.combo_lugar.addItem(s)
+            if s not in [self.place_combo_box.itemText(i) for i in range(self.place_combo_box.count())]:
+                self.place_combo_box.addItem(s)
 
     def _on_apply(self):
         # At least one filter must be active
-        if self.combo_lugar.currentText().strip().lower() in ('', 'todas'):
+        if self.place_combo_box.currentText().strip().lower() in (''):
             QMessageBox.information(self, 'Información', 'Debe seleccionar un lugar o cancelar')
             return
 
         self.accept()
 
     def _on_clear(self):
-        # Reset combo to 'Todas'
-        if self.combo_lugar.count() > 0:
-            self.combo_lugar.setCurrentIndex(0)
+        if self.place_combo_box.count() > 0:
+            self.place_combo_box.setCurrentIndex(0)
 
     def get_filter_params(self) -> dict:
         params = {
             'lugar': None
         }
 
-        sel = self.combo_lugar.currentText().strip()
+        sel = self.place_combo_box.currentText().strip()
         if sel and sel.lower() not in ('todas', ''):
             params['lugar'] = sel
 

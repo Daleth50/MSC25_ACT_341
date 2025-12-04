@@ -1,8 +1,3 @@
-"""
-Package pktCuentas
-Lógica de negocio del sistema bancario
-"""
-
 from .account import Account
 from .credit_account import CreditAccount
 from .bank_herencia import BankManager

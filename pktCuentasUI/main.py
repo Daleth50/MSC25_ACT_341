@@ -11,7 +11,7 @@ from pktCuentas.data_manager import DataManager
 from pktCuentas.analytics import Analytics
 from pktCuentas.charts import ChartGenerator
 from pktCuentasUI.add_account_dialog import AddAccountDialog
-from pktCuentasUI.filter_dialogs import BalanceFilterDialog, AccountTypeFilterDialog, DatePlaceFilterDialog
+from pktCuentasUI.filter_dialogs import BalanceFilterDialog, AccountTypeFilterDialog, PlaceFilterDialog
 from pktCuentasUI.results_dialogs import ChartDialog, FilterResultDialog, ImportResultDialog
 from pktCuentasUI.report_dialog import ReportDialog
 
@@ -397,7 +397,7 @@ class Main(QMainWindow):
             accounts = self.bank.handle_list_accounts()
             df = Analytics.accounts_to_dataframe(accounts)
             loc_options = Analytics.get_location_options(df)
-            dlg = DatePlaceFilterDialog(self, locations=loc_options)
+            dlg = PlaceFilterDialog(self, locations=loc_options)
             if dlg.exec_() == QDialog.Accepted:
                 params = dlg.get_filter_params()
                 accounts = self.bank.handle_list_accounts()
