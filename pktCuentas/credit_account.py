@@ -1,6 +1,5 @@
 from pktCuentas.account import Account
 
-
 class CreditAccount(Account):
     def __init__(self, no_account, apellido_paterno, apellido_materno, nombre, balance=1000.0, fecha=None, lugar=""):
         super().__init__(no_account, apellido_paterno, apellido_materno, nombre, balance, fecha, lugar)

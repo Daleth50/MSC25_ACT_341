@@ -1,44 +1,24 @@
-"""
-Analytics Module
-Data analysis using Pandas
-Implements three different filters for account analysis
-"""
-
 from typing import List, Optional
 import pandas as pd
-from pktCuentas.account import Account
 from pktCuentas.credit_account import CreditAccount
 
 
 class Analytics:
-    """
-    Provides static methods for data analysis and filtering on accounts using pandas DataFrames.
-    """
-
     @staticmethod
     def accounts_to_dataframe(accounts: List) -> pd.DataFrame:
-        """
-        Convert a list of Account/CreditAccount objects to a pandas DataFrame.
-
-        Args:
-            accounts: List of Account objects
-
-        Returns:
-            pd.DataFrame: DataFrame with account data
-        """
         data = []
         for acc in accounts:
             acc_type = 'credit' if isinstance(acc, CreditAccount) else 'normal'
             credit_limit = acc.get_credit_limit() if acc_type == 'credit' else 0.0
             data.append({
-                'account_no': acc.get_no_account(),
-                'last_name': acc.get_apellido_paterno(),
-                'middle_name': acc.get_apellido_materno(),
-                'first_name': acc.get_nombre(),
-                'full_name': f"{acc.get_apellido_paterno()} {acc.get_apellido_materno()} {acc.get_nombre()}",
+                'account_no': acc.get_account_number(),
+                'last_name': acc.get_last_name(),
+                'middle_name': acc.get_maternal_last_name(),
+                'first_name': acc.get_first_name(),
+                'full_name': f"{acc.get_last_name()} {acc.get_maternal_last_name()} {acc.get_first_name()}",
                 'balance': acc.get_balance(),
-                'date': acc.get_fecha(),
-                'location': acc.get_lugar() if hasattr(acc, 'get_lugar') else '',
+                'date': acc.get_date(),
+                'location': acc.get_place() if hasattr(acc, 'get_place') else '',
                 'account_type': acc_type,
                 'credit_limit': credit_limit
             })
@@ -50,33 +30,12 @@ class Analytics:
     @staticmethod
     def filter_by_balance_range(df: pd.DataFrame, min_balance: float,
                                 max_balance: float) -> pd.DataFrame:
-        """
-        Filter accounts by a balance range.
-
-        Args:
-            df: DataFrame with accounts
-            min_balance: Minimum balance
-            max_balance: Maximum balance
-
-        Returns:
-            pd.DataFrame: Filtered DataFrame
-        """
         if df.empty:
             return df
         return df[(df['balance'] >= min_balance) & (df['balance'] <= max_balance)]
 
     @staticmethod
     def filter_by_account_type(df: pd.DataFrame, acc_type: str) -> pd.DataFrame:
-        """
-        Filter accounts by type: 'normal', 'credit', or 'all'.
-
-        Args:
-            df: DataFrame with accounts
-            acc_type: 'normal', 'credit', or 'all'
-
-        Returns:
-            pd.DataFrame: Filtered DataFrame
-        """
         if df.empty or acc_type == 'all' or acc_type == 'todas':
             return df
         return df[df['account_type'] == acc_type]
@@ -85,18 +44,6 @@ class Analytics:
     def filter_by_date_location(df: pd.DataFrame, date_start: Optional[str] = None,
                                 date_end: Optional[str] = None,
                                 location: Optional[str] = None) -> pd.DataFrame:
-        """
-        Filter accounts by date range and/or location.
-
-        Args:
-            df: DataFrame with accounts
-            date_start: Start date (YYYY-MM-DD format)
-            date_end: End date (YYYY-MM-DD format)
-            location: Location to search (partial match)
-
-        Returns:
-            pd.DataFrame: Filtered DataFrame
-        """
         if df.empty:
             return df
         filtered = df
@@ -110,15 +57,6 @@ class Analytics:
 
     @staticmethod
     def get_statistics(df: pd.DataFrame) -> dict:
-        """
-        Get statistics from a DataFrame of accounts.
-
-        Args:
-            df: DataFrame with accounts
-
-        Returns:
-            dict: Dictionary with statistics
-        """
         if df.empty:
             return {
                 'total_accounts': 0,
@@ -148,15 +86,6 @@ class Analytics:
 
     @staticmethod
     def group_by_type(df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Group accounts by type and return counts and sums.
-
-        Args:
-            df: DataFrame with accounts
-
-        Returns:
-            pd.DataFrame: Grouped DataFrame
-        """
         if df.empty:
             return pd.DataFrame()
         return df.groupby('account_type').agg(
@@ -166,16 +95,6 @@ class Analytics:
 
     @staticmethod
     def group_by_date(df: pd.DataFrame, freq: str = 'M') -> pd.DataFrame:
-        """
-        Group accounts by date (monthly by default).
-
-        Args:
-            df: DataFrame with accounts
-            freq: Frequency for grouping (e.g., 'M' for month)
-
-        Returns:
-            pd.DataFrame: Grouped DataFrame
-        """
         if df.empty or 'date' not in df.columns:
             return pd.DataFrame()
         df = df.dropna(subset=['date'])
@@ -190,15 +109,6 @@ class Analytics:
 
     @staticmethod
     def compare_balance_credit(df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Compare balance and credit limit for credit accounts.
-
-        Args:
-            df: DataFrame with accounts
-
-        Returns:
-            pd.DataFrame: Filtered DataFrame with balance and credit limit
-        """
         if df.empty:
             return pd.DataFrame()
         filtered = df[df['account_type'] == 'credit']

@@ -1,84 +1,54 @@
 class Account(object):
-    def __init__(self, no_account: int, apellido_paterno: str, apellido_materno: str, nombre: str,
-                 balance: float = 1000.0, fecha: str = None, lugar: str = ""):
-        self.__no_account = no_account
-        self.__apellido_paterno = apellido_paterno
-        self.__apellido_materno = apellido_materno
-        self.__nombre = nombre
+    def __init__(self, account_number: int, last_name: str, maternal_last_name: str, first_name: str,
+                 balance: float = 1000.0, date: str = None, place: str = ""):
+        self.__account_number = account_number
+        self.__last_name = last_name
+        self.__maternal_last_name = maternal_last_name
+        self.__first_name = first_name
         self.__balance = float(balance)
-        self.__fecha = fecha
-        self.__lugar = lugar
+        self.__date = date
+        self.__place = place
 
     def get_balance(self):
         return self.__balance
 
-    def get_no_account(self):
-        return self.__no_account
-
-    def get_apellido_paterno(self):
-        return self.__apellido_paterno
-
-    def get_apellido_materno(self):
-        return self.__apellido_materno
-
-    def get_nombre(self):
-        return self.__nombre
-
-    def get_fecha(self):
-        return self.__fecha
-
-    def get_lugar(self):
-        return self.__lugar
+    def get_account_number(self):
+        return self.__account_number
 
     def get_last_name(self):
-        return self.get_apellido_paterno()
+        return self.__last_name
 
     def get_maternal_last_name(self):
-        return self.get_apellido_materno()
+        return self.__maternal_last_name
 
     def get_first_name(self):
-        return self.get_nombre()
+        return self.__first_name
 
     def get_date(self):
-        return self.get_fecha()
+        return self.__date
 
     def get_place(self):
-        return self.get_lugar()
+        return self.__place
 
     def set_last_name(self, value: str):
-        return self.set_apellido_paterno(value)
+        self.__last_name = value
+        return self.__last_name
 
     def set_maternal_last_name(self, value: str):
-        return self.set_apellido_materno(value)
+        self.__maternal_last_name = value
+        return self.__maternal_last_name
 
     def set_first_name(self, value: str):
-        return self.set_nombre(value)
+        self.__first_name = value
+        return self.__first_name
 
     def set_date(self, value: str):
-        return self.set_fecha(value)
+        self.__date = value
+        return self.__date
 
     def set_place(self, value: str):
-        return self.set_lugar(value)
-
-    def set_apellido_paterno(self, valor: str):
-        self.__apellido_paterno = valor
-        return self.__apellido_paterno
-
-    def set_apellido_materno(self, valor: str):
-        self.__apellido_materno = valor
-        return self.__apellido_materno
-
-    def set_nombre(self, valor: str):
-        self.__nombre = valor
-        return self.__nombre
-
-    def set_fecha(self, valor: str):
-        self.__fecha = valor
-        return self.__fecha
-
-    def set_lugar(self, valor: str):
-        self.__lugar = valor
-        return self.__lugar
+        self.__place = value
+        return self.__place
 
     def set_balance(self, balance: float):
         self.__balance = float(balance)
@@ -91,7 +61,7 @@ class Account(object):
                 self.__balance += amount
                 return self.get_balance()
             else:
-                raise ValueError('Monto inválido para depósito')
+                raise ValueError('Invalid amount for deposit')
         except Exception as e:
             return e
 
@@ -99,16 +69,16 @@ class Account(object):
         try:
             amount = float(amount)
             if amount <= 0:
-                raise ValueError('Monto inválido para retiro')
+                raise ValueError('Invalid amount for withdrawal')
             if amount > self.__balance:
-                raise Exception('Saldo insuficiente')
+                raise Exception('Insufficient funds')
             self.__balance -= amount
             return self.get_balance()
         except Exception as e:
             return e
 
     def print_account(self):
-        return f"Cuenta No: {self.__no_account}, {self.__apellido_paterno} {self.__apellido_materno} {self.__nombre}, Balance: {self.__balance}, Fecha: {self.__fecha}, Lugar: {self.__lugar}"
+        return f"Account No: {self.__account_number}, {self.__last_name} {self.__maternal_last_name} {self.__first_name}, Balance: {self.__balance}, Date: {self.__date}, Place: {self.__place}"
 
     def __str__(self):
         return self.print_account()

@@ -40,6 +40,8 @@ class Main(QMainWindow):
                 self.clear_controls()
             except Exception:
                 pass
+            # Ensure table is refreshed with data from DB
+            self.refresh_table()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
@@ -113,12 +115,12 @@ class Main(QMainWindow):
             self.model.removeRows(0, self.model.rowCount())
             accounts = self.bank.handle_list_accounts() if hasattr(self.bank, 'handle_list_accounts') else list(self.bank.accounts)
             for acc in accounts:
-                no = str(acc.get_no_account())
-                client = f"{acc.get_apellido_paterno()} {acc.get_apellido_materno()} {acc.get_nombre()}"
+                no = str(acc.get_account_number())
+                client = f"{acc.get_last_name()} {acc.get_maternal_last_name()} {acc.get_first_name()}"
                 balance = f"{acc.get_balance():.2f}"
                 account_type = "Crédito" if isinstance(acc, CreditAccount) else "Normal"
                 credit_limit = f"{acc.get_credit_limit():.2f}" if isinstance(acc, CreditAccount) else "N/A"
-                lugar = acc.get_lugar() if hasattr(acc, 'get_lugar') else ""
+                lugar = acc.get_place() if hasattr(acc, 'get_place') else ""
 
                 row_data = [
                     QStandardItem(no),
@@ -186,14 +188,14 @@ class Main(QMainWindow):
                 if row >= 0 and hasattr(self, 'tbl_accounts'):
                     self.tbl_accounts.selectRow(row)
                 info_lines = [
-                    f"Cuenta: {account.get_no_account()}",
-                    f"Cliente: {account.get_apellido_paterno()} {account.get_apellido_materno()} {account.get_nombre()}",
+                    f"Cuenta: {account.get_account_number()}",
+                    f"Cliente: {account.get_last_name()} {account.get_maternal_last_name()} {account.get_first_name()}",
                     f"Saldo: {account.get_balance():.2f}"
                 ]
-                if hasattr(account, 'get_fecha') and account.get_fecha():
-                    info_lines.append(f"Fecha: {account.get_fecha()}")
-                if hasattr(account, 'get_lugar') and account.get_lugar():
-                    info_lines.append(f"Lugar: {account.get_lugar()}")
+                if hasattr(account, 'get_date') and account.get_date():
+                    info_lines.append(f"Fecha: {account.get_date()}")
+                if hasattr(account, 'get_place') and account.get_place():
+                    info_lines.append(f"Lugar: {account.get_place()}")
                 if isinstance(account, CreditAccount):
                     info_lines.append("Tipo: Cuenta de Crédito")
                     info_lines.append(f"Límite de crédito: {account.get_credit_limit():.2f}")
@@ -213,7 +215,7 @@ class Main(QMainWindow):
             if not account:
                 QMessageBox.information(self, 'Error', 'Cuenta no encontrada')
                 return
-            info = f"Cuenta: {account.get_no_account()}\nCliente: {account.get_apellido_paterno()} {account.get_apellido_materno()} {account.get_nombre()}\nSaldo: {account.get_balance():.2f}"
+            info = f"Cuenta: {account.get_account_number()}\nCliente: {account.get_last_name()} {account.get_maternal_last_name()} {account.get_first_name()}\nSaldo: {account.get_balance():.2f}"
             if isinstance(account, CreditAccount):
                 info += f"\nCrédito: {account.get_credit_limit():.2f}"
             msg = QMessageBox(self)
@@ -249,13 +251,13 @@ class Main(QMainWindow):
             elif clicked == btn_edit:
                 try:
                     dlg_data = {
-                        'no_account': account.get_no_account(),
-                        'apep': account.get_apellido_paterno(),
-                        'apem': account.get_apellido_materno(),
-                        'nombre': account.get_nombre(),
+                        'no_account': account.get_account_number(),
+                        'apep': account.get_last_name(),
+                        'apem': account.get_maternal_last_name(),
+                        'nombre': account.get_first_name(),
                         'balance': account.get_balance(),
-                        'fecha': account.get_fecha() if hasattr(account, 'get_fecha') else None,
-                        'lugar': account.get_lugar() if hasattr(account, 'get_lugar') else '',
+                        'fecha': account.get_date() if hasattr(account, 'get_date') else None,
+                        'lugar': account.get_place() if hasattr(account, 'get_place') else '',
                         'credit': account.get_credit_limit() if isinstance(account, CreditAccount) and hasattr(account, 'get_credit_limit') else 0.0,
                         'account_type': 'credit' if isinstance(account, CreditAccount) else 'normal'
                     }
@@ -263,11 +265,11 @@ class Main(QMainWindow):
                     if edit_dlg.exec_() == QDialog.Accepted:
                         newdata = edit_dlg.get_data()
                         res = self.bank.modify_account_fields(account_no,
-                                                             apellido_paterno=newdata['apep'],
-                                                             apellido_materno=newdata['apem'],
-                                                             nombre=newdata['nombre'],
-                                                             fecha=newdata['fecha'],
-                                                             lugar=newdata['lugar'])
+                                                             last_name=newdata['apep'],
+                                                             maternal_last_name=newdata['apem'],
+                                                             first_name=newdata['nombre'],
+                                                             date=newdata['fecha'],
+                                                             place=newdata['lugar'])
                         if isinstance(res, Exception):
                             QMessageBox.critical(self, 'Error', str(res))
                         else:
@@ -374,8 +376,8 @@ class Main(QMainWindow):
             if dlg.exec_() == QDialog.Accepted:
                 params = dlg.get_filter_params()
                 accounts = self.bank.handle_list_accounts()
-                df = Analytics.cuentas_to_dataframe(accounts)
-                filtered_df = Analytics.filtrar_por_rango_balance(df, params['balance_min'], params['balance_max'])
+                df = Analytics.accounts_to_dataframe(accounts)
+                filtered_df = Analytics.filter_by_balance_range(df, params['balance_min'], params['balance_max'])
                 result_dlg = FilterResultDialog(filtered_df, 'Filtro por Saldo', self)
                 result_dlg.exec_()
         except Exception as e:
@@ -387,8 +389,8 @@ class Main(QMainWindow):
             if dlg.exec_() == QDialog.Accepted:
                 params = dlg.get_filter_params()
                 accounts = self.bank.handle_list_accounts()
-                df = Analytics.cuentas_to_dataframe(accounts)
-                filtered_df = Analytics.filtrar_por_tipo_cuenta(df, params['tipo'])
+                df = Analytics.accounts_to_dataframe(accounts)
+                filtered_df = Analytics.filter_by_account_type(df, params['tipo'])
                 result_dlg = FilterResultDialog(filtered_df, f'Filtro por Tipo: {params["tipo"]}', self)
                 result_dlg.exec_()
         except Exception as e:
@@ -400,12 +402,12 @@ class Main(QMainWindow):
             if dlg.exec_() == QDialog.Accepted:
                 params = dlg.get_filter_params()
                 accounts = self.bank.handle_list_accounts()
-                df = Analytics.cuentas_to_dataframe(accounts)
-                filtered_df = Analytics.filtrar_por_fecha_lugar(
+                df = Analytics.accounts_to_dataframe(accounts)
+                filtered_df = Analytics.filter_by_date_location(
                     df,
-                    fecha_inicio=params['fecha_inicio'],
-                    fecha_fin=params['fecha_fin'],
-                    lugar=params['lugar']
+                    date_start=params['fecha_inicio'],
+                    date_end=params['fecha_fin'],
+                    location=params['lugar']
                 )
                 result_dlg = FilterResultDialog(filtered_df, 'Filtro por Fecha y Lugar', self)
                 result_dlg.exec_()
@@ -415,8 +417,8 @@ class Main(QMainWindow):
     # Métodos de gráficas
     def show_chart_balance(self):
         try:
-            chart_gen = ChartGenerator(self.bank.handle_list_accounts())
-            fig = chart_gen.generar_histograma_saldos(self.bank.handle_list_accounts())
+            chart_gen = ChartGenerator()
+            fig = chart_gen.generate_balance_histogram(self.bank.handle_list_accounts())
             if fig:
                 dlg = ChartDialog(self, fig, 'Distribución de Saldos')
                 dlg.exec_()
@@ -425,8 +427,8 @@ class Main(QMainWindow):
 
     def show_chart_types(self):
         try:
-            chart_gen = ChartGenerator(self.bank.handle_list_accounts())
-            fig = chart_gen.generar_pie_tipos(self.bank.handle_list_accounts())
+            chart_gen = ChartGenerator()
+            fig = chart_gen.generate_account_type_pie(self.bank.handle_list_accounts())
             if fig:
                 dlg = ChartDialog(self, fig, 'Tipos de Cuenta')
                 dlg.exec_()
@@ -435,8 +437,8 @@ class Main(QMainWindow):
 
     def show_chart_temporal(self):
         try:
-            chart_gen = ChartGenerator(self.bank.handle_list_accounts())
-            fig = chart_gen.generar_linea_temporal(self.bank.handle_list_accounts())
+            chart_gen = ChartGenerator()
+            fig = chart_gen.generate_temporal_trend(self.bank.handle_list_accounts())
             if fig:
                 dlg = ChartDialog(self, fig, 'Análisis Temporal')
                 dlg.exec_()
@@ -445,8 +447,8 @@ class Main(QMainWindow):
 
     def show_chart_credit(self):
         try:
-            chart_gen = ChartGenerator(self.bank.handle_list_accounts())
-            fig = chart_gen.generar_comparacion_credito(self.bank.handle_list_accounts())
+            chart_gen = ChartGenerator()
+            fig = chart_gen.generate_credit_comparison(self.bank.handle_list_accounts())
             if fig:
                 dlg = ChartDialog(self, fig, 'Uso de Crédito')
                 dlg.exec_()
@@ -462,16 +464,16 @@ class Main(QMainWindow):
             fig = None
             title = ''
             if selected == 'hist':
-                fig = chart_gen.generar_histograma_saldos(accounts)
+                fig = chart_gen.generate_balance_histogram(accounts)
                 title = 'Distribución de Saldos'
             elif selected == 'pie':
-                fig = chart_gen.generar_pie_tipos(accounts)
+                fig = chart_gen.generate_account_type_pie(accounts)
                 title = 'Distribución por Tipo de Cuenta'
             elif selected == 'time':
-                fig = chart_gen.generar_linea_temporal(accounts)
+                fig = chart_gen.generate_temporal_trend(accounts)
                 title = 'Tendencia Temporal de Apertura de Cuentas'
             elif selected == 'credit':
-                fig = chart_gen.generar_comparacion_credito(accounts)
+                fig = chart_gen.generate_credit_comparison(accounts)
                 title = 'Comparación Balance vs Límite de Crédito'
             if fig:
                 dlg_chart = ChartDialog(fig, title, self)

@@ -1,12 +1,6 @@
-"""
-Results Dialog Module
-Shows filter and chart results dialogs
-"""
-
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
                              QTableWidget, QTableWidgetItem, QLabel, QTextEdit,
-                             QGroupBox, QHeaderView, QMessageBox)
-from PyQt5.QtCore import Qt
+                             QGroupBox, QHeaderView, QMessageBox, QFileDialog)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 
@@ -103,18 +97,18 @@ class FilterResultDialog(QDialog):
         from pktCuentas.analytics import Analytics
         if self.df.empty:
             return "No se encontraron resultados para este filtro."
-        stats = Analytics.obtener_estadisticas(self.df)
-        text = f"<b>Total de cuentas:</b> {stats['total_cuentas']}<br>"
-        text += f"<b>Balance total:</b> ${stats['balance_total']:,.2f}<br>"
-        text += f"<b>Balance promedio:</b> ${stats['balance_promedio']:,.2f}<br>"
-        text += f"<b>Balance mínimo:</b> ${stats['balance_min']:,.2f}<br>"
-        text += f"<b>Balance máximo:</b> ${stats['balance_max']:,.2f}<br>"
-        if 'cuentas_normales' in stats:
-            text += f"<b>Cuentas normales:</b> {stats['cuentas_normales']}<br>"
-            text += f"<b>Cuentas de crédito:</b> {stats['cuentas_credito']}<br>"
-        if 'credito_total' in stats:
-            text += f"<b>Crédito total:</b> ${stats['credito_total']:,.2f}<br>"
-            text += f"<b>Crédito promedio:</b> ${stats['credito_promedio']:,.2f}<br>"
+        stats = Analytics.get_statistics(self.df)
+        text = f"<b>Total de cuentas:</b> {stats.get('total_accounts', 0)}<br>"
+        text += f"<b>Balance total:</b> ${stats.get('total_balance', 0.0):,.2f}<br>"
+        text += f"<b>Balance promedio:</b> ${stats.get('average_balance', 0.0):,.2f}<br>"
+        text += f"<b>Balance mínimo:</b> ${stats.get('min_balance', 0.0):,.2f}<br>"
+        text += f"<b>Balance máximo:</b> ${stats.get('max_balance', 0.0):,.2f}<br>"
+        if 'normal_accounts' in stats:
+            text += f"<b>Cuentas normales:</b> {stats.get('normal_accounts', 0)}<br>"
+            text += f"<b>Cuentas de crédito:</b> {stats.get('credit_accounts', 0)}<br>"
+        if 'total_credit' in stats:
+            text += f"<b>Crédito total:</b> ${stats.get('total_credit', 0.0):,.2f}<br>"
+            text += f"<b>Crédito promedio:</b> ${stats.get('average_credit', 0.0):,.2f}<br>"
         return text
 
     def _populate_table(self):
@@ -144,8 +138,6 @@ class FilterResultDialog(QDialog):
         self.table.setAlternatingRowColors(True)
 
     def _export_results(self):
-        from PyQt5.QtWidgets import QFileDialog
-        import pandas as pd
         if self.df.empty:
             QMessageBox.information(self, 'Información', 'No hay datos para exportar')
             return

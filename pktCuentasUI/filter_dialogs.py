@@ -1,8 +1,3 @@
-"""
-Filter Dialogs Module
-Dialogs for filtering data by different criteria
-"""
-
 from PyQt5.QtWidgets import (QDialog, QLabel, QDoubleSpinBox, QComboBox,
                              QDateEdit, QLineEdit, QPushButton, QVBoxLayout,
                              QHBoxLayout, QGridLayout, QMessageBox, QGroupBox, QCheckBox)
@@ -10,10 +5,6 @@ from PyQt5.QtCore import QDate
 
 
 class BalanceFilterDialog(QDialog):
-    """
-    Dialog to filter accounts by balance range
-    """
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('Filtrar por Rango de Balance')
@@ -80,12 +71,6 @@ class BalanceFilterDialog(QDialog):
         self.accept()
 
     def get_filter_params(self) -> dict:
-        """
-        Get filter parameters
-
-        Returns:
-            dict: Dictionary with balance_min and balance_max
-        """
         return {
             'balance_min': self.spin_min.value(),
             'balance_max': self.spin_max.value()
@@ -93,10 +78,6 @@ class BalanceFilterDialog(QDialog):
 
 
 class AccountTypeFilterDialog(QDialog):
-    """
-    Dialog to filter accounts by type
-    """
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('Filtrar por Tipo de Cuenta')
@@ -149,12 +130,6 @@ class AccountTypeFilterDialog(QDialog):
         self.btn_cancel.clicked.connect(self.reject)
 
     def get_filter_params(self) -> dict:
-        """
-        Get filter parameters
-
-        Returns:
-            dict: Dictionary with account type
-        """
         tipo_map = {
             0: 'todas',
             1: 'normal',
@@ -167,9 +142,6 @@ class AccountTypeFilterDialog(QDialog):
 
 
 class DatePlaceFilterDialog(QDialog):
-    """
-    Dialog to filter accounts by date and/or place
-    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -255,12 +227,10 @@ class DatePlaceFilterDialog(QDialog):
         self.btn_clear.clicked.connect(self._on_clear)
 
     def _toggle_dates(self, enabled):
-        """Enable/disable date controls"""
         self.date_inicio.setEnabled(enabled)
         self.date_fin.setEnabled(enabled)
 
     def _on_apply(self):
-        """Validate and accept the dialog"""
         if self.chk_use_dates.isChecked():
             fecha_inicio = self.date_inicio.date()
             fecha_fin = self.date_fin.date()
@@ -277,19 +247,12 @@ class DatePlaceFilterDialog(QDialog):
         self.accept()
 
     def _on_clear(self):
-        """Clear controls"""
         self.chk_use_dates.setChecked(False)
         self.le_lugar.clear()
         self.date_inicio.setDate(QDate.currentDate().addYears(-1))
         self.date_fin.setDate(QDate.currentDate())
 
     def get_filter_params(self) -> dict:
-        """
-        Get filter parameters
-
-        Returns:
-            dict: Dictionary with start_date, end_date, place
-        """
         params = {
             'fecha_inicio': None,
             'fecha_fin': None,

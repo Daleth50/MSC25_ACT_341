@@ -1,36 +1,12 @@
-"""
-Data Manager Module
-Manages import and export of CSV/XLSX data
-"""
-
 import pandas as pd
 from typing import Dict, List, Tuple
 import os
 
 
 class DataManager:
-    """
-    Data import/export manager for CSV/XLSX files
-    """
 
     @staticmethod
     def import_from_csv(file_path: str, db_manager, bank) -> Dict:
-        """
-        Import accounts from a CSV file
-        Validates data and inserts into the database
-
-        Args:
-            file_path: Path to the CSV file
-            db_manager: DatabaseManager instance
-            bank: BankHerencia instance
-
-        Returns:
-            Dict: {
-                'success': int,
-                'errors': List[str],
-                'duplicates': List[int]
-            }
-        """
         result = {
             'success': 0,
             'errors': [],
@@ -207,23 +183,11 @@ class DataManager:
 
     @staticmethod
     def export_to_csv(accounts: List, file_path: str) -> Tuple[bool, str]:
-        """
-        Exports accounts to a CSV file
-
-        Args:
-            accounts: List of Account objects
-            file_path: Path to the CSV file to create
-
-        Returns:
-            Tuple[bool, str]: (success, message)
-        """
         try:
-            # Create directory if it doesn't exist
             directory = os.path.dirname(file_path)
             if directory and not os.path.exists(directory):
                 os.makedirs(directory)
 
-            # Convert accounts to list of dictionaries
             data = []
             for acc in accounts:
                 from pktCuentas.credit_account import CreditAccount
@@ -232,13 +196,13 @@ class DataManager:
                 credit_limit = acc.get_credit_limit() if isinstance(acc, CreditAccount) else 0.0
 
                 data.append({
-                    'account_no': acc.get_no_account(),
-                    'last_name': acc.get_apellido_paterno(),
-                    'middle_name': acc.get_apellido_materno(),
-                    'first_name': acc.get_nombre(),
+                    'account_no': acc.get_account_number(),
+                    'last_name': acc.get_last_name(),
+                    'middle_name': acc.get_maternal_last_name(),
+                    'first_name': acc.get_first_name(),
                     'balance': acc.get_balance(),
-                    'date': acc.get_fecha() if acc.get_fecha() else '',
-                    'location': acc.get_lugar() if acc.get_lugar() else '',
+                    'date': acc.get_date() if acc.get_date() else '',
+                    'location': acc.get_place() if acc.get_place() else '',
                     'account_type': account_type,
                     'credit_limit': credit_limit
                 })
@@ -254,16 +218,6 @@ class DataManager:
 
     @staticmethod
     def export_to_xlsx(accounts: List, file_path: str) -> Tuple[bool, str]:
-        """
-        Exports accounts to an Excel (XLSX) file
-
-        Args:
-            accounts: List of Account objects
-            file_path: Path to the XLSX file to create
-
-        Returns:
-            Tuple[bool, str]: (success, message)
-        """
         try:
             # Create directory if it doesn't exist
             directory = os.path.dirname(file_path)
@@ -279,28 +233,20 @@ class DataManager:
                 credit_limit = acc.get_credit_limit() if isinstance(acc, CreditAccount) else 0.0
 
                 data.append({
-                    'Account No.': acc.get_no_account(),
-                    'Last Name': acc.get_apellido_paterno(),
-                    'Middle Name': acc.get_apellido_materno(),
-                    'First Name': acc.get_nombre(),
+                    'Account No.': acc.get_account_number(),
+                    'Last Name': acc.get_last_name(),
+                    'Middle Name': acc.get_maternal_last_name(),
+                    'First Name': acc.get_first_name(),
                     'Balance': acc.get_balance(),
-                    'Date': acc.get_fecha() if acc.get_fecha() else '',
-                    'Location': acc.get_lugar() if acc.get_lugar() else '',
+                    'Date': acc.get_date() if acc.get_date() else '',
+                    'Location': acc.get_place() if acc.get_place() else '',
                     'Account Type': account_type,
                     'Credit Limit': credit_limit
                 })
-
-            # Create DataFrame and export
             df = pd.DataFrame(data)
-
-            # Export with formatting
             with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False, sheet_name='Accounts')
-
-                # Get worksheet to apply formatting
                 worksheet = writer.sheets['Accounts']
-
-                # Adjust column widths
                 for column in worksheet.columns:
                     max_length = 0
                     column_letter = column[0].column_letter
