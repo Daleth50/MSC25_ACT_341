@@ -1,8 +1,8 @@
 from pktCuentas.account import Account
 
 class CreditAccount(Account):
-    def __init__(self, no_account, apellido_paterno, apellido_materno, nombre, balance=1000.0, fecha=None, lugar=""):
-        super().__init__(no_account, apellido_paterno, apellido_materno, nombre, balance, fecha, lugar)
+    def __init__(self, account_no, last_name, middle_name, first_name, balance=1000.0, date=None, location=""):
+        super().__init__(account_no, last_name, middle_name, first_name, balance, date, location)
         self.credit = 500.0
 
     def get_credit_limit(self):

@@ -63,7 +63,7 @@ class ChartGenerator:
             ax.set_title('Distribución por Tipo de Cuenta')
             return fig
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
-        tipo_counts = df['tipo_cuenta'].value_counts()
+        tipo_counts = df['account_type'].value_counts()
 
         colores = ['#ff9999', '#66b3ff']
         explode = (0.05, 0.05)
@@ -92,7 +92,8 @@ class ChartGenerator:
                         for label, count in zip(['Normal', 'Crédito'], tipo_counts)]
         ax1.legend(legend_labels, loc='upper left', fontsize=10)
 
-        saldo_por_tipo = df.groupby('tipo_cuenta')['balance'].sum()
+        # Sum balances by English 'account_type'
+        saldo_por_tipo = df.groupby('account_type')['balance'].sum()
 
         wedges2, texts2, autotexts2 = ax2.pie(saldo_por_tipo,
                                               labels=['Cuenta Normal', 'Cuenta de Crédito'],
@@ -133,7 +134,15 @@ class ChartGenerator:
             ax.set_title('Tendencia Temporal de Apertura de Cuentas')
             return fig
 
-        df_con_fecha = df[df['fecha'].notna()].copy()
+        # Work with English 'date' column
+        if 'date' not in df.columns:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            ax.text(0.5, 0.5, 'No hay datos de fechas para mostrar',
+                   ha='center', va='center', fontsize=14)
+            ax.set_title('Tendencia Temporal de Apertura de Cuentas')
+            return fig
+
+        df_con_fecha = df[df['date'].notna()].copy()
 
         if df_con_fecha.empty:
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -144,27 +153,28 @@ class ChartGenerator:
 
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10))
 
-        df_con_fecha = df_con_fecha.sort_values('fecha')
+        df_con_fecha = df_con_fecha.sort_values('date')
 
         df_con_fecha['contador'] = 1
         df_con_fecha['cuentas_acumuladas'] = df_con_fecha['contador'].cumsum()
 
-        df_normal = df_con_fecha[df_con_fecha['tipo_cuenta'] == 'normal'].copy()
-        df_credit = df_con_fecha[df_con_fecha['tipo_cuenta'] == 'credit'].copy()
+        # Use English 'account_type'
+        df_normal = df_con_fecha[df_con_fecha['account_type'] == 'normal'].copy()
+        df_credit = df_con_fecha[df_con_fecha['account_type'] == 'credit'].copy()
 
         if not df_normal.empty:
             df_normal['acum_tipo'] = df_normal['contador'].cumsum()
-            ax1.plot(df_normal['fecha'], df_normal['acum_tipo'],
+            ax1.plot(df_normal['date'], df_normal['acum_tipo'],
                     marker='o', linestyle='-', linewidth=2, markersize=6,
                     label='Cuentas Normales', color='#ff9999')
 
         if not df_credit.empty:
             df_credit['acum_tipo'] = df_credit['contador'].cumsum()
-            ax1.plot(df_credit['fecha'], df_credit['acum_tipo'],
+            ax1.plot(df_credit['date'], df_credit['acum_tipo'],
                     marker='s', linestyle='-', linewidth=2, markersize=6,
                     label='Cuentas de Crédito', color='#66b3ff')
 
-        ax1.plot(df_con_fecha['fecha'], df_con_fecha['cuentas_acumuladas'],
+        ax1.plot(df_con_fecha['date'], df_con_fecha['cuentas_acumuladas'],
                 marker='D', linestyle='--', linewidth=2, markersize=5,
                 label='Total Acumulado', color='green', alpha=0.7)
 
@@ -177,7 +187,7 @@ class ChartGenerator:
         plt.setp(ax1.xaxis.get_majorticklabels(), rotation=45, ha='right')
 
         # Gráfica 2: Balance promedio por mes
-        df_con_fecha['year_month'] = df_con_fecha['fecha'].dt.to_period('M')
+        df_con_fecha['year_month'] = df_con_fecha['date'].dt.to_period('M')
         balance_por_mes = df_con_fecha.groupby('year_month').agg({
             'balance': ['mean', 'sum', 'count']
         }).reset_index()
@@ -210,7 +220,8 @@ class ChartGenerator:
         ChartGenerator._configure_style()
         df = Analytics.accounts_to_dataframe(accounts)
 
-        df_credito = df[df['tipo_cuenta'] == 'credit'].copy()
+        # Use English 'account_type' to filter credit accounts
+        df_credito = df[df['account_type'] == 'credit'].copy()
 
         if df_credito.empty:
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -226,7 +237,7 @@ class ChartGenerator:
 
         bars1 = ax.bar(x_pos - width/2, df_credito['balance'], width,
                       label='Balance', color='#66b3ff', alpha=0.8)
-        bars2 = ax.bar(x_pos + width/2, df_credito['limite_credito'], width,
+        bars2 = ax.bar(x_pos + width/2, df_credito['credit_limit'], width,
                       label='Límite de Crédito', color='#ff9999', alpha=0.8)
 
         ax.set_xlabel('Cuenta', fontsize=12, fontweight='bold')
@@ -234,7 +245,11 @@ class ChartGenerator:
         ax.set_title('Comparación: Balance vs Límite de Crédito',
                     fontsize=14, fontweight='bold', pad=20)
         ax.set_xticks(x_pos)
-        ax.set_xticklabels(df_credito['no_cuenta'], rotation=45, ha='right')
+        # Use 'account_no' for tick labels if present
+        if 'account_no' in df_credito.columns:
+            ax.set_xticklabels(df_credito['account_no'].astype(str), rotation=45, ha='right')
+        else:
+            ax.set_xticklabels([str(i) for i in df_credito.index], rotation=45, ha='right')
         ax.legend(fontsize=11)
         ax.grid(True, alpha=0.3, axis='y')
 

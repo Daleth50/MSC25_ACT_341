@@ -90,7 +90,7 @@ source /ruta/completa/database/banco_schema.sql
 
 Esto crea:
 - Base de datos `banco_db`
-- Tabla `cuentas` con índices optimizados
+- Tabla `accounts` con índices optimizados
 - 5 registros de ejemplo para pruebas
 
 ### 5. Configurar credenciales de la base de datos
@@ -152,9 +152,9 @@ python main.py
 
 **Formato requerido de CSV**:
 ```csv
-no_cuenta,apellido_paterno,apellido_materno,nombre,balance,fecha,lugar,tipo_cuenta,limite_credito
-1010,García,López,Juan,5000.00,2025-01-15,Ciudad de México,normal,0.00
-1011,Martínez,Pérez,María,3000.00,2025-02-20,Guadalajara,credit,2000.00
+account_no,last_name,middle_name,first_name,balance,date,location,account_type,credit_limit
+1010,Garcia,Lopez,Juan,5000.00,2025-01-15,Mexico City,normal,0.00
+1011,Martinez,Perez,Maria,3000.00,2025-02-20,Guadalajara,credit,2000.00
 ```
 
 #### Exportar a CSV/Excel
@@ -238,28 +238,28 @@ MSC25_ACT_3.1/
 
 ## Base de datos
 
-### Esquema de la tabla `cuentas`
+### Esquema de la tabla `accounts`
 
 | Campo            | Tipo             | Descripción                    |
 |------------------|------------------|--------------------------------|
 | id               | INT (PK, AI)     | ID interno autoincremental     |
-| no_cuenta        | INT (UNIQUE)     | Número de cuenta único         |
-| apellido_paterno | VARCHAR(100)     | Apellido paterno del cliente   |
-| apellido_materno | VARCHAR(100)     | Apellido materno del cliente   |
-| nombre           | VARCHAR(100)     | Nombre del cliente             |
+| account_no       | INT (UNIQUE)     | Número de cuenta único         |
+| last_name        | VARCHAR(100)     | Apellido paterno del cliente   |
+| middle_name      | VARCHAR(100)     | Apellido materno del cliente   |
+| first_name       | VARCHAR(100)     | Nombre del cliente             |
 | balance          | DECIMAL(15,2)    | Saldo actual                   |
-| fecha            | DATE             | Fecha de apertura              |
-| lugar            | VARCHAR(200)     | Lugar de apertura              |
-| tipo_cuenta      | ENUM             | 'normal' o 'credit'            |
-| limite_credito   | DECIMAL(15,2)    | Límite de crédito (si aplica)  |
+| date             | DATE             | Fecha de apertura              |
+| location         | VARCHAR(200)     | Lugar de apertura              |
+| account_type     | ENUM             | 'normal' o 'credit'            |
+| credit_limit     | DECIMAL(15,2)    | Límite de crédito (si aplica)  |
 | created_at       | TIMESTAMP        | Fecha de creación              |
 | updated_at       | TIMESTAMP        | Fecha de última actualización  |
 
 ### Índices
-- `idx_no_cuenta`: Búsqueda rápida por número de cuenta
-- `idx_tipo_cuenta`: Filtros por tipo
-- `idx_fecha`: Filtros temporales
-- `idx_apellido_paterno`: Búsqueda por nombre
+- `idx_account_no`: Búsqueda rápida por número de cuenta
+- `idx_account_type`: Filtros por tipo
+- `idx_date`: Filtros temporales
+- `idx_last_name`: Búsqueda por nombre
 
 ## Solución de problemas
 
@@ -272,7 +272,7 @@ MSC25_ACT_3.1/
 2. Verifica credenciales en `config/database_config.ini`
 3. Prueba la conexión manual: `mysql -u root -p`
 
-### Error: "La tabla 'cuentas' no existe"
+### Error: "La tabla 'accounts' no existe"
 
 **Causa**: No se ejecutó el script SQL
 

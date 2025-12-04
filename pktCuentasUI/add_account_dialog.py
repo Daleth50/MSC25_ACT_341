@@ -115,26 +115,29 @@ class AddAccountDialog(QDialog):
         self.accept()
 
     def set_data(self, data: dict):
+        """Accepts data with English keys:
+        account_no, last_name, middle_name, first_name, balance, date, location, credit_limit, account_type
+        """
         try:
-            self.le_account.setText(str(data.get('no_account', '')))
+            self.le_account.setText(str(data.get('account_no', '')))
             self.le_account.setReadOnly(True)
-            self.le_last_name.setText(data.get('apep', ''))
-            self.le_maternal_last_name.setText(data.get('apem', ''))
-            self.le_first_name.setText(data.get('nombre', ''))
+            self.le_last_name.setText(data.get('last_name', ''))
+            self.le_maternal_last_name.setText(data.get('middle_name', ''))
+            self.le_first_name.setText(data.get('first_name', ''))
             try:
                 self.spin_balance.setValue(float(data.get('balance', 0.0)))
             except Exception:
                 pass
-            if data.get('fecha'):
+            if data.get('date'):
                 try:
-                    self.date_date.setDate(QDate.fromString(data.get('fecha'), 'yyyy-MM-dd'))
+                    self.date_date.setDate(QDate.fromString(data.get('date'), 'yyyy-MM-dd'))
                 except Exception:
                     pass
-            self.le_place.setText(data.get('lugar', ''))
+            self.le_place.setText(data.get('location', ''))
             if data.get('account_type') == 'credit':
                 self.combo_type.setCurrentIndex(1)
                 try:
-                    self.spin_credit.setValue(float(data.get('credit', 0.0)))
+                    self.spin_credit.setValue(float(data.get('credit_limit', 0.0)))
                 except Exception:
                     pass
             else:
@@ -143,24 +146,25 @@ class AddAccountDialog(QDialog):
             pass
 
     def get_data(self):
+        """Return a dict with English keys used across the project."""
         account_no = int(self.le_account.text().strip()) if self.le_account.text().strip() else 0
-        apep = self.le_last_name.text().strip()
-        apem = self.le_maternal_last_name.text().strip()
-        nombre = self.le_first_name.text().strip()
+        last_name = self.le_last_name.text().strip()
+        middle_name = self.le_maternal_last_name.text().strip()
+        first_name = self.le_first_name.text().strip()
         inicial_balance = float(self.spin_balance.value())
-        fecha = self.date_date.date().toString('yyyy-MM-dd')
-        lugar = self.le_place.text().strip()
-        credit = float(self.spin_credit.value()) if self.spin_credit.isVisible() else 0.0
+        date = self.date_date.date().toString('yyyy-MM-dd')
+        location = self.le_place.text().strip()
+        credit_limit = float(self.spin_credit.value()) if self.spin_credit.isVisible() else 0.0
         selected_index = self.combo_type.currentIndex()
         account_type = 'credit' if selected_index == 1 else 'normal'
         return {
-            'no_account': account_no,
-            'apep': apep,
-            'apem': apem,
-            'nombre': nombre,
+            'account_no': account_no,
+            'last_name': last_name,
+            'middle_name': middle_name,
+            'first_name': first_name,
             'balance': inicial_balance,
-            'fecha': fecha,
-            'lugar': lugar,
-            'credit': credit,
+            'date': date,
+            'location': location,
+            'credit_limit': credit_limit,
             'account_type': account_type
         }

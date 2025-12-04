@@ -87,8 +87,6 @@ class Main(QMainWindow):
             self.action_chart_temporal.triggered.connect(self.show_chart_temporal)
         if hasattr(self, 'action_chart_credit'):
             self.action_chart_credit.triggered.connect(self.show_chart_credit)
-
-        # Conexión de botones de la sección de filtros
         if hasattr(self, 'btnFiltroBalance'):
             self.btnFiltroBalance.clicked.connect(self.show_balance_filter)
         if hasattr(self, 'btnFiltroTipo'):
@@ -139,19 +137,19 @@ class Main(QMainWindow):
             dlg = AddAccountDialog(self)
             if dlg.exec_() == QDialog.Accepted:
                 data = dlg.get_data()
-                no_account = data['no_account']
-                apep = data['apep']
-                apem = data['apem']
-                nombre = data['nombre']
+                account_no = data['account_no']
+                last_name = data['last_name']
+                middle_name = data['middle_name']
+                first_name = data['first_name']
                 inicial_balance = data['balance']
-                fecha = data['fecha']
-                lugar = data['lugar']
-                credit = data['credit']
+                date = data['date']
+                location = data['location']
+                credit = data['credit_limit']
                 account_type = data['account_type']
-                if self.bank.get_account(no_account):
-                    QMessageBox.information(self,'Duplicado',f'La cuenta {no_account} ya existe')
+                if self.bank.get_account(account_no):
+                    QMessageBox.information(self,'Duplicado',f'La cuenta {account_no} ya existe')
                     return
-                account = self.bank.handle_add_account(no_account, apep, apem, nombre, account_type, inicial_balance, fecha, lugar, credit)
+                account = self.bank.handle_add_account(account_no, last_name, middle_name, first_name, account_type, inicial_balance, date, location, credit)
                 if isinstance(account, Exception):
                     QMessageBox.critical(self, 'Error', str(account))
                     return
@@ -251,31 +249,32 @@ class Main(QMainWindow):
             elif clicked == btn_edit:
                 try:
                     dlg_data = {
-                        'no_account': account.get_account_number(),
-                        'apep': account.get_last_name(),
-                        'apem': account.get_maternal_last_name(),
-                        'nombre': account.get_first_name(),
+                        'account_no': account.get_account_number(),
+                        'last_name': account.get_last_name(),
+                        'middle_name': account.get_maternal_last_name(),
+                        'first_name': account.get_first_name(),
                         'balance': account.get_balance(),
-                        'fecha': account.get_date() if hasattr(account, 'get_date') else None,
-                        'lugar': account.get_place() if hasattr(account, 'get_place') else '',
-                        'credit': account.get_credit_limit() if isinstance(account, CreditAccount) and hasattr(account, 'get_credit_limit') else 0.0,
+                        'date': account.get_date() if hasattr(account, 'get_date') else None,
+                        'location': account.get_place() if hasattr(account, 'get_place') else '',
+                        'credit_limit': account.get_credit_limit() if isinstance(account, CreditAccount) and hasattr(account, 'get_credit_limit') else 0.0,
                         'account_type': 'credit' if isinstance(account, CreditAccount) else 'normal'
                     }
                     edit_dlg = AddAccountDialog(self, data=dlg_data, edit_mode=True)
                     if edit_dlg.exec_() == QDialog.Accepted:
                         newdata = edit_dlg.get_data()
+                        # pass English-named fields to BankManager.modify_account_fields
                         res = self.bank.modify_account_fields(account_no,
-                                                             last_name=newdata['apep'],
-                                                             maternal_last_name=newdata['apem'],
-                                                             first_name=newdata['nombre'],
-                                                             date=newdata['fecha'],
-                                                             place=newdata['lugar'])
+                                                             last_name=newdata.get('last_name'),
+                                                             middle_name=newdata.get('middle_name'),
+                                                             first_name=newdata.get('first_name'),
+                                                             date=newdata.get('date'),
+                                                             location=newdata.get('location'))
                         if isinstance(res, Exception):
                             QMessageBox.critical(self, 'Error', str(res))
                         else:
                             if newdata.get('account_type') == 'credit':
                                 try:
-                                    credit_val = float(newdata.get('credit', 0.0))
+                                    credit_val = float(newdata.get('credit_limit', 0.0))
                                     c_res = self.bank.modify_credit(account_no, credit_val)
                                     if isinstance(c_res, Exception):
                                         QMessageBox.critical(self, 'Error', str(c_res))
@@ -420,7 +419,7 @@ class Main(QMainWindow):
             chart_gen = ChartGenerator()
             fig = chart_gen.generate_balance_histogram(self.bank.handle_list_accounts())
             if fig:
-                dlg = ChartDialog(self, fig, 'Distribución de Saldos')
+                dlg = ChartDialog(fig, 'Distribución de Saldos', self)
                 dlg.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
@@ -430,7 +429,7 @@ class Main(QMainWindow):
             chart_gen = ChartGenerator()
             fig = chart_gen.generate_account_type_pie(self.bank.handle_list_accounts())
             if fig:
-                dlg = ChartDialog(self, fig, 'Tipos de Cuenta')
+                dlg = ChartDialog(fig, 'Tipos de Cuenta', self)
                 dlg.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
@@ -440,7 +439,7 @@ class Main(QMainWindow):
             chart_gen = ChartGenerator()
             fig = chart_gen.generate_temporal_trend(self.bank.handle_list_accounts())
             if fig:
-                dlg = ChartDialog(self, fig, 'Análisis Temporal')
+                dlg = ChartDialog(fig, 'Análisis Temporal', self)
                 dlg.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
@@ -450,7 +449,7 @@ class Main(QMainWindow):
             chart_gen = ChartGenerator()
             fig = chart_gen.generate_credit_comparison(self.bank.handle_list_accounts())
             if fig:
-                dlg = ChartDialog(self, fig, 'Uso de Crédito')
+                dlg = ChartDialog(fig, 'Uso de Crédito', self)
                 dlg.exec_()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))

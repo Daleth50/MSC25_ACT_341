@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
                              QTableWidget, QTableWidgetItem, QLabel, QTextEdit,
                              QGroupBox, QHeaderView, QMessageBox, QFileDialog)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import pandas as pd
 
 
 class ChartDialog(QDialog):
@@ -53,14 +54,15 @@ class ChartDialog(QDialog):
 
 class FilterResultDialog(QDialog):
     """
-    Dialog to show filter results
+    Dialog to show filter results (expects DataFrame columns in English)
     """
 
     def __init__(self, df, filter_name, parent=None):
         super().__init__(parent)
         self.setWindowTitle(f'Resultados: {filter_name}')
         self.setMinimumSize(1000, 600)
-        self.df = df
+        # Expect df to have English column names across the project
+        self.df = pd.DataFrame() if df is None else df.copy()
         self.filter_name = filter_name
         self.setup_ui()
 
@@ -97,6 +99,7 @@ class FilterResultDialog(QDialog):
         from pktCuentas.analytics import Analytics
         if self.df.empty:
             return "No se encontraron resultados para este filtro."
+        # Analytics expects English column names (balance, account_type, credit_limit)
         stats = Analytics.get_statistics(self.df)
         text = f"<b>Total de cuentas:</b> {stats.get('total_accounts', 0)}<br>"
         text += f"<b>Balance total:</b> ${stats.get('total_balance', 0.0):,.2f}<br>"
@@ -116,23 +119,64 @@ class FilterResultDialog(QDialog):
             self.table.setRowCount(0)
             self.table.setColumnCount(0)
             return
-        columns = ['No. Cuenta', 'Nombre Completo', 'Balance', 'Tipo', 'Límite Crédito', 'Fecha', 'Lugar']
+        columns = ['Account No.', 'Full Name', 'Balance', 'Type', 'Credit Limit', 'Date', 'Location']
         self.table.setColumnCount(len(columns))
         self.table.setHorizontalHeaderLabels(columns)
         self.table.setRowCount(len(self.df))
-        for idx, row in self.df.iterrows():
-            self.table.setItem(idx, 0, QTableWidgetItem(str(row['no_cuenta'])))
-            self.table.setItem(idx, 1, QTableWidgetItem(row['nombre_completo']))
-            self.table.setItem(idx, 2, QTableWidgetItem(f"${row['balance']:,.2f}"))
-            tipo_text = 'Crédito' if row['tipo_cuenta'] == 'credit' else 'Normal'
-            self.table.setItem(idx, 3, QTableWidgetItem(tipo_text))
-            credito_text = f"${row['limite_credito']:,.2f}" if row['tipo_cuenta'] == 'credit' else 'N/A'
-            self.table.setItem(idx, 4, QTableWidgetItem(credito_text))
-            fecha_text = row['fecha'].strftime('%Y-%m-%d') if row['fecha'] is not None else 'N/A'
-            self.table.setItem(idx, 5, QTableWidgetItem(fecha_text))
-            self.table.setItem(idx, 6, QTableWidgetItem(row['lugar']))
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        # Use integer indexes to satisfy QTableWidget API and avoid ambiguous Series truth checks
+        for i in range(len(self.df)):
+            row = self.df.iloc[i]
+            # account number
+            acct_no = row.get('account_no', '')
+            self.table.setItem(i, 0, QTableWidgetItem(str(acct_no)))
+            # full name: prefer full_name, else compose
+            full_name = row.get('full_name') if 'full_name' in self.df.columns else None
+            if not full_name:
+                parts = []
+                for k in ('last_name', 'middle_name', 'first_name'):
+                    if k in self.df.columns and pd.notna(row.get(k)):
+                        parts.append(str(row.get(k)).strip())
+                full_name = ' '.join(parts).strip()
+            self.table.setItem(i, 1, QTableWidgetItem(full_name if full_name else ''))
+            # balance
+            bal = row.get('balance', 0.0)
+            try:
+                bal = float(bal)
+            except Exception:
+                bal = 0.0
+            self.table.setItem(i, 2, QTableWidgetItem(f"${bal:,.2f}"))
+            # type
+            tipo_text = 'Crédito' if str(row.get('account_type', '')).lower() == 'credit' else 'Normal'
+            self.table.setItem(i, 3, QTableWidgetItem(tipo_text))
+            # credit limit
+            credit_limit = row.get('credit_limit', 0.0)
+            try:
+                credit_limit = float(credit_limit)
+            except Exception:
+                credit_limit = 0.0
+            credito_text = f"${credit_limit:,.2f}" if str(row.get('account_type', '')).lower() == 'credit' else 'N/A'
+            self.table.setItem(i, 4, QTableWidgetItem(credito_text))
+            # date
+            date_val = row.get('date', None)
+            date_text = ''
+            try:
+                if pd.isna(date_val) or date_val is None or str(date_val) == '':
+                    date_text = 'N/A'
+                else:
+                    if hasattr(date_val, 'strftime'):
+                        date_text = date_val.strftime('%Y-%m-%d')
+                    else:
+                        parsed = pd.to_datetime(date_val, errors='coerce')
+                        date_text = parsed.strftime('%Y-%m-%d') if not pd.isna(parsed) else 'N/A'
+            except Exception:
+                date_text = 'N/A'
+            self.table.setItem(i, 5, QTableWidgetItem(date_text))
+            # location
+            loc = row.get('location', '') if 'location' in self.df.columns and row.get('location') else ''
+            self.table.setItem(i, 6, QTableWidgetItem(loc))
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setAlternatingRowColors(True)
@@ -144,14 +188,16 @@ class FilterResultDialog(QDialog):
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Exportar Resultados",
-            f"filtro_{self.filter_name.lower().replace(' ', '_')}.csv",
+            f"filter_{self.filter_name.lower().replace(' ', '_')}.csv",
             "CSV (*.csv);;Todos los archivos (*)"
         )
         if file_path:
             try:
-                df_export = self.df[['no_cuenta', 'apellido_paterno', 'apellido_materno',
-                                    'nombre', 'balance', 'fecha', 'lugar',
-                                    'tipo_cuenta', 'limite_credito']].copy()
+                # Export using English column convention used across project
+                df_export = self.df[[
+                    'account_no', 'last_name', 'middle_name', 'first_name',
+                    'balance', 'date', 'location', 'account_type', 'credit_limit'
+                ]].copy()
                 df_export.to_csv(file_path, index=False, encoding='utf-8-sig')
                 QMessageBox.information(self, 'Éxito', f'Resultados exportados a:\n{file_path}')
             except Exception as e:
