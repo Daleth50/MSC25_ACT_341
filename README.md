@@ -16,7 +16,7 @@ Sistema completo para la gestión de cuentas bancarias con interfaz gráfica PyQ
 ### Filtros de análisis (Pandas)
 1. Filtro por rango de saldo: filtra cuentas entre un saldo mínimo y máximo
 2. Filtro por tipo de cuenta: filtra por cuentas normales, de crédito o todas
-3. Filtro por fecha y lugar: filtra por rango de fechas y/o ubicación geográfica
+3. Filtro por lugar: filtra por ubicación geográfica
 
 ### Gráficas (Matplotlib/Seaborn)
 1. Histograma de distribución de saldos
@@ -175,9 +175,9 @@ account_no,last_name,middle_name,first_name,balance,date,location,account_type,c
 2. Selecciona el tipo de cuenta
 3. Visualiza los resultados
 
-#### Filtro por fecha/lugar
-1. Menú **Análisis → Filtrar por Fecha y Lugar**
-2. Activa el filtro de fechas y/o ingresa el lugar
+#### Filtro por lugar
+1. Menú **Análisis → Filtrar por Lugar**
+2. Selecciona una ubicación del listado (o 'Todas' para no filtrar)
 3. Visualiza los resultados
 
 ### Visualizar gráficas

@@ -221,14 +221,28 @@ class ChartGenerator:
         df = Analytics.accounts_to_dataframe(accounts)
 
         # Use English 'account_type' to filter credit accounts
-        df_credito = df[df['account_type'] == 'credit'].copy()
-
-        if df_credito.empty:
+        if df.empty or 'account_type' not in df.columns:
             fig, ax = plt.subplots(figsize=(10, 6))
             ax.text(0.5, 0.5, 'No hay cuentas de crédito para mostrar',
                    ha='center', va='center', fontsize=14)
             ax.set_title('Análisis de Cuentas de Crédito')
             return fig
+
+        try:
+            df_credito = df[df['account_type'] == 'credit'].copy()
+        except Exception:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            ax.text(0.5, 0.5, 'No hay cuentas de crédito para mostrar',
+                   ha='center', va='center', fontsize=14)
+            ax.set_title('Análisis de Cuentas de Crédito')
+            return fig
+
+        if df_credito.empty:
+             fig, ax = plt.subplots(figsize=(10, 6))
+             ax.text(0.5, 0.5, 'No hay cuentas de crédito para mostrar',
+                    ha='center', va='center', fontsize=14)
+             ax.set_title('Análisis de Cuentas de Crédito')
+             return fig
 
         fig, ax = plt.subplots(figsize=(12, 7))
 

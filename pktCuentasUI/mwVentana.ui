@@ -61,7 +61,7 @@
                     <item>
                         <widget class="QPushButton" name="btnFiltroFechaLugar">
                             <property name="text">
-                                <string>Rango de Fechas / Lugar</string>
+                                <string>Filtrar por Lugar</string>
                             </property>
                         </widget>
                     </item>

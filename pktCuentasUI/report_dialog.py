@@ -29,6 +29,9 @@ class ReportDialog(QDialog):
         group.setLayout(group_layout)
         layout.addWidget(group)
 
+        # Select a sensible default so the user can click "Ver gráfica" right away
+        self.radio_hist.setChecked(True)
+
         btn_layout = QHBoxLayout()
         self.btn_show = QPushButton('Ver gráfica')
         self.btn_cancel = QPushButton('Cancelar')
@@ -50,4 +53,3 @@ class ReportDialog(QDialog):
         elif self.radio_credit.isChecked():
             return 'credit'
         return None
-

@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import (QDialog, QLabel, QDoubleSpinBox, QComboBox,
-                             QDateEdit, QLineEdit, QPushButton, QVBoxLayout,
-                             QHBoxLayout, QGridLayout, QMessageBox, QGroupBox, QCheckBox)
-from PyQt5.QtCore import QDate
+                             QPushButton, QVBoxLayout,
+                             QHBoxLayout, QGridLayout, QMessageBox, QGroupBox)
 
 
 class BalanceFilterDialog(QDialog):
@@ -105,7 +104,8 @@ class AccountTypeFilterDialog(QDialog):
             '• Cuentas de Crédito: Only accounts with credit limit'
         )
         info_label.setWordWrap(True)
-        info_label.setStyleSheet('QLabel { padding: 10px; background-color: #fff; color: #222; font-weight: bold; border-radius: 5px; }')
+        info_label.setStyleSheet(
+            'QLabel { padding: 10px; background-color: #fff; color: #222; font-weight: bold; border-radius: 5px; }')
         grid.addWidget(info_label, 1, 0, 1, 2)
 
         group.setLayout(grid)
@@ -145,54 +145,23 @@ class DatePlaceFilterDialog(QDialog):
 
     def __init__(self, parent=None, locations: list | None = None):
         super().__init__(parent)
-        self.setWindowTitle('Filtrar por Fecha y Lugar')
-        self.setMinimumWidth(450)
+        self.setWindowTitle('Filtrar por Lugar')
+        self.setMinimumWidth(380)
         self._locations = locations or []
         self.setup_ui()
 
     def setup_ui(self):
         layout = QVBoxLayout()
 
-        # Date range group
-        group_fecha = QGroupBox("Rango de Fechas")
-        grid_fecha = QGridLayout()
-
-        # Start date
-        grid_fecha.addWidget(QLabel('Fecha Inicio:'), 0, 0)
-        self.date_inicio = QDateEdit()
-        self.date_inicio.setCalendarPopup(True)
-        self.date_inicio.setDisplayFormat('yyyy-MM-dd')
-        self.date_inicio.setDate(QDate.currentDate().addYears(-1))
-        grid_fecha.addWidget(self.date_inicio, 0, 1)
-
-        # End date
-        grid_fecha.addWidget(QLabel('Fecha Fin:'), 1, 0)
-        self.date_fin = QDateEdit()
-        self.date_fin.setCalendarPopup(True)
-        self.date_fin.setDisplayFormat('yyyy-MM-dd')
-        self.date_fin.setDate(QDate.currentDate())
-        grid_fecha.addWidget(self.date_fin, 1, 1)
-
-        # Date filter checkbox
-        self.chk_use_dates = QCheckBox('Aplicar filtro de fechas')
-        self.chk_use_dates.setChecked(False)
-        self.chk_use_dates.toggled.connect(self._toggle_dates)
-        grid_fecha.addWidget(self.chk_use_dates, 2, 0, 1, 2)
-
-        group_fecha.setLayout(grid_fecha)
-        layout.addWidget(group_fecha)
-
         # Place group
         group_lugar = QGroupBox("Lugar")
         grid_lugar = QGridLayout()
 
-        # Replace free-text input with a combo box populated from provided locations
         grid_lugar.addWidget(QLabel('Seleccionar Lugar:'), 0, 0)
         self.combo_lugar = QComboBox()
         self.combo_lugar.setEditable(False)
         grid_lugar.addWidget(self.combo_lugar, 0, 1)
 
-        # Information label
         info_label = QLabel(
             'Seleccione una ubicación del listado. Use "Todas" para no filtrar por lugar.'
         )
@@ -216,18 +185,10 @@ class DatePlaceFilterDialog(QDialog):
         btn_layout.addWidget(self.btn_cancel)
 
         layout.addLayout(btn_layout)
-
         self.setLayout(layout)
-
-        # Initial state
-        self._toggle_dates(False)
-
-        # Connect signals
         self.btn_apply.clicked.connect(self._on_apply)
         self.btn_cancel.clicked.connect(self.reject)
         self.btn_clear.clicked.connect(self._on_clear)
-
-        # Populate combo with provided locations
         self.set_location_options(self._locations)
 
     def set_location_options(self, locations: list):
@@ -245,44 +206,23 @@ class DatePlaceFilterDialog(QDialog):
             if s not in [self.combo_lugar.itemText(i) for i in range(self.combo_lugar.count())]:
                 self.combo_lugar.addItem(s)
 
-    def _toggle_dates(self, enabled):
-        self.date_inicio.setEnabled(enabled)
-        self.date_fin.setEnabled(enabled)
-
     def _on_apply(self):
-        if self.chk_use_dates.isChecked():
-            fecha_inicio = self.date_inicio.date()
-            fecha_fin = self.date_fin.date()
-
-            if fecha_inicio > fecha_fin:
-                QMessageBox.warning(self, 'Validación', 'La fecha de inicio no puede ser posterior a la fecha fin')
-                return
-
         # At least one filter must be active
-        if not self.chk_use_dates.isChecked() and (self.combo_lugar.currentText().strip().lower() in ('', 'todas')):
-            QMessageBox.information(self, 'Información', 'Debe activar al menos un filtro (fecha o lugar)')
+        if self.combo_lugar.currentText().strip().lower() in ('', 'todas'):
+            QMessageBox.information(self, 'Información', 'Debe seleccionar un lugar o cancelar')
             return
 
         self.accept()
 
     def _on_clear(self):
-        self.chk_use_dates.setChecked(False)
         # Reset combo to 'Todas'
         if self.combo_lugar.count() > 0:
             self.combo_lugar.setCurrentIndex(0)
-        self.date_inicio.setDate(QDate.currentDate().addYears(-1))
-        self.date_fin.setDate(QDate.currentDate())
 
     def get_filter_params(self) -> dict:
         params = {
-            'fecha_inicio': None,
-            'fecha_fin': None,
             'lugar': None
         }
-
-        if self.chk_use_dates.isChecked():
-            params['fecha_inicio'] = self.date_inicio.date().toString('yyyy-MM-dd')
-            params['fecha_fin'] = self.date_fin.date().toString('yyyy-MM-dd')
 
         sel = self.combo_lugar.currentText().strip()
         if sel and sel.lower() not in ('todas', ''):
