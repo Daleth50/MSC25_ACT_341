@@ -49,7 +49,6 @@ class Analytics:
         loc = str(location).strip()
         if loc == '' or loc.lower() in ('all', 'todas'):
             return df
-        # Match location case-insensitively and trim whitespace
         return df[df['location'].astype(str).str.strip().str.lower() == loc.lower()]
 
     @staticmethod

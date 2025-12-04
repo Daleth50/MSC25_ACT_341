@@ -91,8 +91,6 @@ class ChartGenerator:
         legend_labels = [f'{label}: {count} cuentas'
                         for label, count in zip(['Normal', 'Crédito'], tipo_counts)]
         ax1.legend(legend_labels, loc='upper left', fontsize=10)
-
-        # Sum balances by English 'account_type'
         saldo_por_tipo = df.groupby('account_type')['balance'].sum()
 
         wedges2, texts2, autotexts2 = ax2.pie(saldo_por_tipo,
@@ -133,8 +131,6 @@ class ChartGenerator:
                    ha='center', va='center', fontsize=14)
             ax.set_title('Tendencia Temporal de Apertura de Cuentas')
             return fig
-
-        # Work with English 'date' column
         if 'date' not in df.columns:
             fig, ax = plt.subplots(figsize=(10, 6))
             ax.text(0.5, 0.5, 'No hay datos de fechas para mostrar',
@@ -157,8 +153,6 @@ class ChartGenerator:
 
         df_con_fecha['contador'] = 1
         df_con_fecha['cuentas_acumuladas'] = df_con_fecha['contador'].cumsum()
-
-        # Use English 'account_type'
         df_normal = df_con_fecha[df_con_fecha['account_type'] == 'normal'].copy()
         df_credit = df_con_fecha[df_con_fecha['account_type'] == 'credit'].copy()
 
@@ -219,8 +213,6 @@ class ChartGenerator:
     def generate_credit_comparison(accounts: List) -> Figure:
         ChartGenerator._configure_style()
         df = Analytics.accounts_to_dataframe(accounts)
-
-        # Use English 'account_type' to filter credit accounts
         if df.empty or 'account_type' not in df.columns:
             fig, ax = plt.subplots(figsize=(10, 6))
             ax.text(0.5, 0.5, 'No hay cuentas de crédito para mostrar',

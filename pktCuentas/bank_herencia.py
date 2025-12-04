@@ -92,15 +92,10 @@ class BankManager:
         try:
             if account not in self.accounts:
                 return Exception('Cuenta no encontrada')
-
-            # Remove from the local list
             self.accounts.remove(account)
-
-            # Sync with database
             if self.db_manager:
                 success, message = self.db_manager.delete_account(account.get_account_number())
                 if not success:
-                    # Revert local change if DB fails
                     self.accounts.append(account)
                     raise Exception(f'Error al eliminar de BD: {message}')
 

@@ -2,7 +2,6 @@ import pandas as pd
 from typing import Dict, List, Tuple
 import os
 
-
 class DataManager:
 
     @staticmethod
@@ -31,11 +30,8 @@ class DataManager:
                 df['account_type'] = 'normal'
             if 'credit_limit' not in df.columns:
                 df['credit_limit'] = 0.0
-
-            # Process each row
             for idx, row in df.iterrows():
                 try:
-                    # Validate account number
                     try:
                         account_no = int(row['account_no'])
                     except (ValueError, TypeError):
@@ -43,15 +39,11 @@ class DataManager:
                             f"Row {idx + 2}: Invalid account number '{row['account_no']}'"
                         )
                         continue
-
-                    # Validate positive account number
                     if account_no <= 0:
                         result['errors'].append(
                             f"Row {idx + 2}: Account number must be positive"
                         )
                         continue
-
-                    # Validate non-empty names
                     last_name = str(row['last_name']).strip()
                     middle_name = str(row['middle_name']).strip()
                     first_name = str(row['first_name']).strip()
@@ -73,8 +65,6 @@ class DataManager:
                             f"Row {idx + 2}: First name is empty"
                         )
                         continue
-
-                    # Validate balance
                     try:
                         balance = float(row['balance'])
                         if balance < 0:
@@ -87,12 +77,9 @@ class DataManager:
                             f"Row {idx + 2}: Invalid balance '{row['balance']}'"
                         )
                         continue
-
-                    # Validate date (can be None)
                     date = None
                     if pd.notna(row['date']):
                         try:
-                            # Try to parse date
                             date_parsed = pd.to_datetime(row['date'])
                             date = date_parsed.strftime('%Y-%m-%d')
                         except:
@@ -100,31 +87,22 @@ class DataManager:
                                 f"Row {idx + 2}: Invalid date format '{row['date']}'"
                             )
                             continue
-
-                    # Validate location
                     location = str(row['location']).strip() if pd.notna(row['location']) else ''
                     if location == 'nan':
                         location = ''
-
-                    # Validate account_type
                     account_type = str(row['account_type']).strip().lower()
                     if account_type not in ['normal', 'credit']:
                         account_type = 'normal'
-
-                    # Validate credit limit
                     try:
                         credit_limit = float(row['credit_limit']) if pd.notna(row['credit_limit']) else 0.0
                         if credit_limit < 0:
                             credit_limit = 0.0
                     except:
                         credit_limit = 0.0
-
-                    # If connected to DB, validate duplicates in DB
                     if db_manager:
                         if db_manager.account_exists(account_no):
                             result['duplicates'].append(account_no)
                             continue
-                        # Insert into database
                         success, message = db_manager.insert_account(
                             account_no=account_no,
                             last_name=last_name,
@@ -144,7 +122,6 @@ class DataManager:
                                 f"Row {idx + 2}, Account {account_no}: {message}"
                             )
                     else:
-                        # Local mode: validate duplicates in self.accounts
                         if bank.get_account(account_no):
                             result['duplicates'].append(account_no)
                             continue
@@ -267,8 +244,6 @@ class DataManager:
 
         try:
             df = pd.read_excel(file_path, engine='openpyxl')
-
-            # Normalize column names to snake_case keys used by CSV importer
             col_map = {}
             for col in df.columns:
                 low = str(col).strip().lower()
@@ -291,12 +266,9 @@ class DataManager:
                 elif low in ['credit limit', 'credit_limit', 'limite credito', 'creditlimit']:
                     col_map[col] = 'credit_limit'
                 else:
-                    # keep original name if unknown
                     col_map[col] = col
 
             df = df.rename(columns=col_map)
-
-            # Reuse CSV import logic by ensuring required columns exist
             required_columns = ['account_no', 'last_name', 'middle_name', 'first_name', 'balance']
             missing_columns = [col for col in required_columns if col not in df.columns]
 
@@ -312,8 +284,6 @@ class DataManager:
                 df['account_type'] = 'normal'
             if 'credit_limit' not in df.columns:
                 df['credit_limit'] = 0.0
-
-            # Now process rows using the same validation as CSV importer
             for idx, row in df.iterrows():
                 try:
                     try:
