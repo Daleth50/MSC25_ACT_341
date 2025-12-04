@@ -70,6 +70,8 @@ class Main(QMainWindow):
             self.action_export_csv.triggered.connect(self.export_csv)
         if hasattr(self, 'action_export_xlsx'):
             self.action_export_xlsx.triggered.connect(self.export_xlsx)
+        if hasattr(self, 'action_export'):
+            self.action_export.triggered.connect(self.export_data)
 
         # Acciones para filtros
         if hasattr(self, 'action_filter_balance'):
@@ -400,6 +402,52 @@ class Main(QMainWindow):
                     QMessageBox.critical(self, 'Error', f'Error al exportar: {mensaje}')
                 else:
                     QMessageBox.information(self, 'Exportar', mensaje)
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
+    def export_data(self):
+        """Export data with format selection (CSV or XLSX)."""
+        try:
+            from PyQt5.QtWidgets import QFileDialog
+            # Ask user to select export format
+            formats = ['CSV', 'Excel (XLSX)']
+            format_choice, ok = QInputDialog.getItem(
+                self, 'Formato de Exportación',
+                'Seleccione el formato de exportación:',
+                formats, 0, False
+            )
+            if not ok:
+                return
+
+            accounts = self.bank.handle_list_accounts()
+            if not accounts:
+                QMessageBox.information(self, 'Exportar', 'No hay cuentas para exportar')
+                return
+
+            if format_choice == 'CSV':
+                filename, _ = QFileDialog.getSaveFileName(
+                    self, 'Exportar CSV', '', 'CSV Files (*.csv)'
+                )
+                if filename:
+                    if not filename.lower().endswith('.csv'):
+                        filename += '.csv'
+                    exito, mensaje = DataManager.export_to_csv(accounts, filename)
+                    if not exito:
+                        QMessageBox.critical(self, 'Error', f'Error al exportar: {mensaje}')
+                    else:
+                        QMessageBox.information(self, 'Exportar', mensaje)
+            else:  # Excel (XLSX)
+                filename, _ = QFileDialog.getSaveFileName(
+                    self, 'Exportar Excel', '', 'Excel Files (*.xlsx)'
+                )
+                if filename:
+                    if not filename.lower().endswith('.xlsx'):
+                        filename += '.xlsx'
+                    exito, mensaje = DataManager.export_to_xlsx(accounts, filename)
+                    if not exito:
+                        QMessageBox.critical(self, 'Error', f'Error al exportar: {mensaje}')
+                    else:
+                        QMessageBox.information(self, 'Exportar', mensaje)
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 

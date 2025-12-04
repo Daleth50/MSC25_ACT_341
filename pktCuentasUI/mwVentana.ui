@@ -115,6 +115,7 @@
                 <addaction name="action_search_2"/>
                 <addaction name="action_import_csv"/>
                 <addaction name="action_import_xlsx"/>
+                <addaction name="action_export"/>
                 <addaction name="separator"/>
                 <addaction name="action_exit_2"/>
             </widget>
@@ -128,6 +129,7 @@
             <addaction name="separator"/>
             <addaction name="action_import_csv"/>
             <addaction name="action_import_xlsx"/>
+            <addaction name="action_export"/>
             <addaction name="action_exit"/>
         </widget>
         <action name="action_exit">
@@ -231,6 +233,19 @@
             </property>
             <property name="text">
                 <string>Importar Excel</string>
+            </property>
+        </action>
+        <action name="action_export">
+            <property name="icon">
+                <iconset>
+                    <normaloff>../Iconos/export.png</normaloff>../Iconos/export.png
+                </iconset>
+            </property>
+            <property name="text">
+                <string>Exportar</string>
+            </property>
+            <property name="toolTip">
+                <string>Exportar datos a CSV o Excel</string>
             </property>
         </action>
     </widget>
