@@ -259,7 +259,6 @@ class ChartGenerator:
         ax.set_title('Comparación: Balance vs Límite de Crédito',
                     fontsize=14, fontweight='bold', pad=20)
         ax.set_xticks(x_pos)
-        # Use 'account_no' for tick labels if present
         if 'account_no' in df_credito.columns:
             ax.set_xticklabels(df_credito['account_no'].astype(str), rotation=45, ha='right')
         else:

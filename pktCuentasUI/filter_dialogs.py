@@ -12,12 +12,8 @@ class BalanceFilterDialog(QDialog):
 
     def setup_ui(self):
         layout = QVBoxLayout()
-
-        # Balance range group
         group = QGroupBox("Rango de Balance")
         grid = QGridLayout()
-
-        # Minimum balance
         grid.addWidget(QLabel('Balance Mínimo:'), 0, 0)
         self.spin_min = QDoubleSpinBox()
         self.spin_min.setRange(0.0, 1e12)
@@ -26,8 +22,6 @@ class BalanceFilterDialog(QDialog):
         self.spin_min.setDecimals(2)
         self.spin_min.setGroupSeparatorShown(True)
         grid.addWidget(self.spin_min, 0, 1)
-
-        # Maximum balance
         grid.addWidget(QLabel('Balance Máximo:'), 1, 0)
         self.spin_max = QDoubleSpinBox()
         self.spin_max.setRange(0.0, 1e12)
@@ -36,30 +30,20 @@ class BalanceFilterDialog(QDialog):
         self.spin_max.setDecimals(2)
         self.spin_max.setGroupSeparatorShown(True)
         grid.addWidget(self.spin_max, 1, 1)
-
         group.setLayout(grid)
         layout.addWidget(group)
-
-        # Buttons
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
-
         self.btn_apply = QPushButton('Aplicar Filtro')
         self.btn_cancel = QPushButton('Cancelar')
-
         btn_layout.addWidget(self.btn_apply)
         btn_layout.addWidget(self.btn_cancel)
-
         layout.addLayout(btn_layout)
-
         self.setLayout(layout)
-
-        # Connect signals
         self.btn_apply.clicked.connect(self._on_apply)
         self.btn_cancel.clicked.connect(self.reject)
 
     def _on_apply(self):
-        """Validate and accept the dialog"""
         min_val = self.spin_min.value()
         max_val = self.spin_max.value()
 
@@ -85,18 +69,12 @@ class AccountTypeFilterDialog(QDialog):
 
     def setup_ui(self):
         layout = QVBoxLayout()
-
-        # Account type group
         group = QGroupBox("Tipo de Cuenta")
         grid = QGridLayout()
-
-        # Type combo box
         grid.addWidget(QLabel('Seleccionar Tipo:'), 0, 0)
         self.combo_type = QComboBox()
         self.combo_type.addItems(['Todas', 'Cuentas Normales', 'Cuentas de Crédito'])
         grid.addWidget(self.combo_type, 0, 1)
-
-        # Additional information
         info_label = QLabel(
             'Filter accounts by type:\n\n'
             '• Todas: Show all accounts\n'
@@ -124,8 +102,6 @@ class AccountTypeFilterDialog(QDialog):
         layout.addLayout(btn_layout)
 
         self.setLayout(layout)
-
-        # Connect signals
         self.btn_apply.clicked.connect(self.accept)
         self.btn_cancel.clicked.connect(self.reject)
 
@@ -142,7 +118,6 @@ class AccountTypeFilterDialog(QDialog):
 
 
 class DatePlaceFilterDialog(QDialog):
-
     def __init__(self, parent=None, locations: list | None = None):
         super().__init__(parent)
         self.setWindowTitle('Filtrar por Lugar')
@@ -152,11 +127,8 @@ class DatePlaceFilterDialog(QDialog):
 
     def setup_ui(self):
         layout = QVBoxLayout()
-
-        # Place group
         group_lugar = QGroupBox("Lugar")
         grid_lugar = QGridLayout()
-
         grid_lugar.addWidget(QLabel('Seleccionar Lugar:'), 0, 0)
         self.combo_lugar = QComboBox()
         self.combo_lugar.setEditable(False)
@@ -171,8 +143,6 @@ class DatePlaceFilterDialog(QDialog):
 
         group_lugar.setLayout(grid_lugar)
         layout.addWidget(group_lugar)
-
-        # Buttons
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
@@ -193,7 +163,6 @@ class DatePlaceFilterDialog(QDialog):
 
     def set_location_options(self, locations: list):
         self.combo_lugar.clear()
-        # Add a neutral option 'Todas'
         self.combo_lugar.addItem('Todas')
         if not locations:
             return

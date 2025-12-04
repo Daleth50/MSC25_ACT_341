@@ -56,7 +56,6 @@ class Analytics:
     def get_location_options(df: pd.DataFrame) -> List[str]:
         if df is None or df.empty or 'location' not in df.columns:
             return []
-        # Extract unique, non-empty, trimmed location strings and sort them
         locs = (df['location'].astype(str)
                     .dropna()
                     .map(lambda s: s.strip())

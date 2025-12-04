@@ -32,7 +32,6 @@ class Main(QMainWindow):
                     '2. La base de datos "banco_db" existe (ejecute banco_schema.sql)\n'
                     '3. Las credenciales en config/database_config.ini son correctas')
                 self.db_manager = None
-            # Use BankManager instead of BankHerencia
             self.bank = BankManager(self.db_manager)
             self.setup_table()
             self.setup_events()
@@ -325,8 +324,6 @@ class Main(QMainWindow):
                 QApplication.quit()
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
-
-    # Métodos de importación/exportación
     def import_csv(self):
         try:
             from PyQt5.QtWidgets import QFileDialog

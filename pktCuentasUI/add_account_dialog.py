@@ -115,9 +115,6 @@ class AddAccountDialog(QDialog):
         self.accept()
 
     def set_data(self, data: dict):
-        """Accepts data with English keys:
-        account_no, last_name, middle_name, first_name, balance, date, location, credit_limit, account_type
-        """
         try:
             self.le_account.setText(str(data.get('account_no', '')))
             self.le_account.setReadOnly(True)
@@ -146,7 +143,6 @@ class AddAccountDialog(QDialog):
             pass
 
     def get_data(self):
-        """Return a dict with English keys used across the project."""
         account_no = int(self.le_account.text().strip()) if self.le_account.text().strip() else 0
         last_name = self.le_last_name.text().strip()
         middle_name = self.le_maternal_last_name.text().strip()

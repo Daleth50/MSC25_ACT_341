@@ -3,7 +3,6 @@ from typing import List, Dict, Optional, Tuple
 import configparser
 import os
 
-
 class DatabaseManager:
     _instance = None
     _pool = None
@@ -42,11 +41,6 @@ class DatabaseManager:
         }
 
     def connect(self) -> bool:
-        """
-        Establece pool de conexiones a la base de datos
-        Returns:
-            bool: True si la conexión fue exitosa, False en caso contrario
-        """
         try:
             if self._pool is None:
                 self._pool = pooling.MySQLConnectionPool(
@@ -74,9 +68,9 @@ class DatabaseManager:
             self._pool = None
 
     def insert_account(self, account_no: int, last_name: str, middle_name: str,
-                      first_name: str, balance: float = 1000.0, date: str = None,
-                      location: str = "", account_type: str = "normal",
-                      credit_limit: float = 0.0) -> Tuple[bool, str]:
+                       first_name: str, balance: float = 1000.0, date: str = None,
+                       location: str = "", account_type: str = "normal",
+                       credit_limit: float = 0.0) -> Tuple[bool, str]:
         connection = None
         cursor = None
 
@@ -97,14 +91,14 @@ class DatabaseManager:
             cursor = connection.cursor()
 
             query = """
-                INSERT INTO accounts 
-                (account_no, last_name, middle_name, first_name, balance, 
-                 date, location, account_type, credit_limit)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
+                    INSERT INTO accounts
+                    (account_no, last_name, middle_name, first_name, balance,
+                     date, location, account_type, credit_limit)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) \
+                    """
 
             values = (account_no, last_name, middle_name, first_name,
-                     balance, date, location, account_type, credit_limit)
+                      balance, date, location, account_type, credit_limit)
 
             cursor.execute(query, values)
             connection.commit()
@@ -123,9 +117,9 @@ class DatabaseManager:
                 connection.close()
 
     def update_account(self, account_no: int, last_name: str = None,
-                      middle_name: str = None, first_name: str = None,
-                      balance: float = None, date: str = None, location: str = None,
-                      credit_limit: float = None) -> Tuple[bool, str]:
+                       middle_name: str = None, first_name: str = None,
+                       balance: float = None, date: str = None, location: str = None,
+                       credit_limit: float = None) -> Tuple[bool, str]:
         connection = None
         cursor = None
 
@@ -229,11 +223,14 @@ class DatabaseManager:
             cursor = connection.cursor(dictionary=True)
 
             query = """
-                SELECT account_no, last_name, middle_name, first_name, 
-                       balance, date, location, account_type, credit_limit
-                FROM accounts
-                ORDER BY account_no
-            """
+                    SELECT account_no,
+                           last_name,
+                           middle_name,
+                           first_name,
+                           balance, date, location, account_type, credit_limit
+                    FROM accounts
+                    ORDER BY account_no \
+                    """
 
             cursor.execute(query)
             results = cursor.fetchall()
@@ -259,11 +256,14 @@ class DatabaseManager:
             cursor = connection.cursor(dictionary=True)
 
             query = """
-                SELECT account_no, last_name, middle_name, first_name, 
-                       balance, date, location, account_type, credit_limit
-                FROM accounts
-                WHERE account_no = %s
-            """
+                    SELECT account_no,
+                           last_name,
+                           middle_name,
+                           first_name,
+                           balance, date, location, account_type, credit_limit
+                    FROM accounts
+                    WHERE account_no = %s \
+                    """
 
             cursor.execute(query, (account_no,))
             result = cursor.fetchone()
@@ -281,9 +281,9 @@ class DatabaseManager:
                 connection.close()
 
     def get_accounts_by_filter(self, account_type: str = None,
-                              balance_min: float = None, balance_max: float = None,
-                              date_start: str = None, date_end: str = None,
-                              location: str = None) -> List[Dict]:
+                               balance_min: float = None, balance_max: float = None,
+                               date_start: str = None, date_end: str = None,
+                               location: str = None) -> List[Dict]:
         connection = None
         cursor = None
 
@@ -318,10 +318,13 @@ class DatabaseManager:
                 values.append(f"%{location}%")
 
             query = """
-                SELECT account_no, last_name, middle_name, first_name, 
-                       balance, date, location, account_type, credit_limit
-                FROM accounts
-            """
+                    SELECT account_no,
+                           last_name,
+                           middle_name,
+                           first_name,
+                           balance, date, location, account_type, credit_limit
+                    FROM accounts \
+                    """
 
             if conditions:
                 query += " WHERE " + " AND ".join(conditions)
