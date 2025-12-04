@@ -112,7 +112,7 @@ class FilterResultDialog(QDialog):
             self.table.setRowCount(0)
             self.table.setColumnCount(0)
             return
-        columns = ['Account No.', 'Full Name', 'Balance', 'Type', 'Credit Limit', 'Date', 'Location']
+        columns = ['No. Cuenta', 'Cliente', 'Saldo', 'Tipo', 'Crédito', 'Fecha', 'Lugar']
         self.table.setColumnCount(len(columns))
         self.table.setHorizontalHeaderLabels(columns)
         self.table.setRowCount(len(self.df))

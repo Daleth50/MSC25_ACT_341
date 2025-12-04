@@ -105,8 +105,9 @@ class Main(QMainWindow):
             self.btnReportes.clicked.connect(self.show_report_dialog)
 
     def setup_table(self):
-        self.model = QStandardItemModel(0, 6, self)
-        self.model.setHorizontalHeaderLabels(['Cuenta', 'Cliente', 'Saldo', 'Tipo', 'Crédito', 'Lugar'])
+        self.model = QStandardItemModel(0, 7, self)
+        self.model.setHorizontalHeaderLabels(['No. Cuenta', 'Cliente', 'Saldo', 'Tipo', 'Crédito', 'Fecha'
+        , 'Lugar'])
         if hasattr(self, 'tbl_accounts'):
             self.tbl_accounts.setModel(self.model)
             self.tbl_accounts.setSelectionBehavior(self.tbl_accounts.SelectRows)
@@ -127,15 +128,25 @@ class Main(QMainWindow):
                 balance = f"{acc.get_balance():.2f}"
                 account_type = "Crédito" if isinstance(acc, CreditAccount) else "Normal"
                 credit_limit = f"{acc.get_credit_limit():.2f}" if isinstance(acc, CreditAccount) else "N/A"
-                lugar = acc.get_place() if hasattr(acc, 'get_place') else ""
+                place = acc.get_place() if hasattr(acc, 'get_place') else ""
 
+                # Handle date - could be string or datetime object
+                date_value = "N/A"
+                if hasattr(acc, 'get_date') and acc.get_date():
+                    date = acc.get_date()
+                    if hasattr(date, 'strftime'):
+                        date_value = date.strftime('%Y-%m-%d')
+                    else:
+                        date_value = str(date)
+                
                 row_data = [
                     QStandardItem(no),
                     QStandardItem(client),
                     QStandardItem(balance),
                     QStandardItem(account_type),
                     QStandardItem(credit_limit),
-                    QStandardItem(lugar)
+                    QStandardItem(date_value),
+                    QStandardItem(place)
                 ]
                 self.model.appendRow(row_data)
         except Exception as e:
