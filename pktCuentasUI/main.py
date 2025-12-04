@@ -1,4 +1,9 @@
 import sys
+import os
+
+# Add the parent directory to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDialog, QInputDialog, QApplication
@@ -20,7 +25,9 @@ class Main(QMainWindow):
     def __init__(self, parent=None):
         super(Main, self).__init__(parent)
         try:
-            loadUi('mwVentana.ui', self)
+            # Load UI file from the same directory as this script
+            ui_path = os.path.join(os.path.dirname(__file__), 'mwVentana.ui')
+            loadUi(ui_path, self)
             self.db_manager = DatabaseManager()
             connected = self.db_manager.connect()
             if not connected:
