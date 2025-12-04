@@ -113,6 +113,7 @@
                 <addaction name="action_add_2"/>
                 <addaction name="action_delete_2"/>
                 <addaction name="action_search_2"/>
+                <addaction name="action_import_csv"/>
                 <addaction name="separator"/>
                 <addaction name="action_exit_2"/>
             </widget>
