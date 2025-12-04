@@ -3,7 +3,7 @@ import pandas as pd
 from pktCuentas.credit_account import CreditAccount
 
 class Analytics:
-    
+
     @staticmethod
     def accounts_to_dataframe(accounts: List) -> pd.DataFrame:
         data = []
