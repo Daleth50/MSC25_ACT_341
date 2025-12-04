@@ -149,9 +149,9 @@ class PlaceFilterDialog(QDialog):
         self.btn_apply = QPushButton('Aplicar Filtro')
         self.btn_cancel = QPushButton('Cancelar')
         self.btn_clear = QPushButton('Limpiar')
-
-        btn_layout.addWidget(self.btn_clear)
+        
         btn_layout.addWidget(self.btn_apply)
+        btn_layout.addWidget(self.btn_clear)
         btn_layout.addWidget(self.btn_cancel)
 
         layout.addLayout(btn_layout)
