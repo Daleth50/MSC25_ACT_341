@@ -81,12 +81,15 @@ class FilterResultDialog(QDialog):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         self.btn_export = QPushButton('Exportar a CSV')
+        self.btn_exportXlsx = QPushButton('Exportar a XLSX')
         self.btn_close = QPushButton('Cerrar')
         btn_layout.addWidget(self.btn_export)
+        btn_layout.addWidget(self.btn_exportXlsx)
         btn_layout.addWidget(self.btn_close)
         layout.addLayout(btn_layout)
         self.setLayout(layout)
         self.btn_export.clicked.connect(self._export_results)
+        self.btn_exportXlsx.clicked.connect(self._export_results_xlsx)
         self.btn_close.clicked.connect(self.accept)
 
     def _generate_statistics(self) -> str:
@@ -183,6 +186,27 @@ class FilterResultDialog(QDialog):
                     'balance', 'date', 'location', 'account_type', 'credit_limit'
                 ]].copy()
                 df_export.to_csv(file_path, index=False, encoding='utf-8-sig')
+                QMessageBox.information(self, 'Éxito', f'Resultados exportados a:\n{file_path}')
+            except Exception as e:
+                QMessageBox.critical(self, 'Error', f'Error al exportar:\n{str(e)}')
+
+    def _export_results_xlsx(self):
+        if self.df.empty:
+            QMessageBox.information(self, 'Información', 'No hay datos para exportar')
+            return
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Exportar Resultados",
+            f"filter_{self.filter_name.lower().replace(' ', '_')}.xlsx",
+            "Excel (*.xlsx);;Todos los archivos (*)"
+        )
+        if file_path:
+            try:
+                df_export = self.df[[
+                    'account_no', 'last_name', 'middle_name', 'first_name',
+                    'balance', 'date', 'location', 'account_type', 'credit_limit'
+                ]].copy()
+                df_export.to_excel(file_path, index=False)
                 QMessageBox.information(self, 'Éxito', f'Resultados exportados a:\n{file_path}')
             except Exception as e:
                 QMessageBox.critical(self, 'Error', f'Error al exportar:\n{str(e)}')

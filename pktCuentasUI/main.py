@@ -399,11 +399,11 @@ class Main(QMainWindow):
             filename, _ = QFileDialog.getSaveFileName(self, 'Exportar CSV', '', 'CSV Files (*.csv)')
             if filename:
                 accounts = self.bank.handle_list_accounts()
-                exito, mensaje = DataManager.export_to_csv(accounts, filename)
-                if not exito:
-                    QMessageBox.critical(self, 'Error', f'Error al exportar: {mensaje}')
+                success, msg = DataManager.export_to_csv(accounts, filename)
+                if not success:
+                    QMessageBox.critical(self, 'Error', f'Error al exportar: {msg}')
                 else:
-                    QMessageBox.information(self, 'Exportar', mensaje)
+                    QMessageBox.information(self, 'Exportar', msg)
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
@@ -413,11 +413,11 @@ class Main(QMainWindow):
             filename, _ = QFileDialog.getSaveFileName(self, 'Exportar Excel', '', 'Excel Files (*.xlsx)')
             if filename:
                 accounts = self.bank.handle_list_accounts()
-                exito, mensaje = DataManager.export_to_xlsx(accounts, filename)
-                if not exito:
-                    QMessageBox.critical(self, 'Error', f'Error al exportar: {mensaje}')
+                success, msg = DataManager.export_to_xlsx(accounts, filename)
+                if not success:
+                    QMessageBox.critical(self, 'Error', f'Error al exportar: {msg}')
                 else:
-                    QMessageBox.information(self, 'Exportar', mensaje)
+                    QMessageBox.information(self, 'Exportar', msg)
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
