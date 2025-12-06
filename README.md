@@ -231,7 +231,6 @@ MSC25_ACT_3.1/
 - Manejo robusto de excepciones
 - Validación de datos de entrada
 - Transacciones con rollback
-- Código documentado con docstrings
 - Gestión de recursos (conexiones, cursores)
 - Retroalimentación visual al usuario
 - Configuración externa (INI)
@@ -298,13 +297,6 @@ pip install -r requirements.txt
 ```bash
 pip install --upgrade matplotlib PyQt5
 ```
-
-## Créditos
-
-**Proyecto**: Sistema de Gestión de Cuentas Bancarias
-**Curso**: MSC25 - Actividad 3.1
-**Fecha**: Diciembre 2025
-**Tecnologías**: Python 3, PyQt5, MySQL, Pandas, Matplotlib
 
 ## Licencia
 
