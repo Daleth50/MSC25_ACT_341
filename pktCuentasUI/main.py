@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 # Add the parent directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -19,6 +19,7 @@ from pktCuentasUI.add_account_dialog import AddAccountDialog
 from pktCuentasUI.filter_dialogs import BalanceFilterDialog, AccountTypeFilterDialog, PlaceFilterDialog
 from pktCuentasUI.results_dialogs import ChartDialog, FilterResultDialog, ImportResultDialog
 from pktCuentasUI.report_dialog import ReportDialog
+from PyQt5.QtWidgets import QFileDialog
 
 
 class Main(QMainWindow):
@@ -284,7 +285,6 @@ class Main(QMainWindow):
                     edit_dlg = AddAccountDialog(self, data=dlg_data, edit_mode=True)
                     if edit_dlg.exec_() == QDialog.Accepted:
                         newdata = edit_dlg.get_data()
-                        # pass English-named fields to BankManager.modify_account_fields
                         res = self.bank.modify_account_fields(account_no,
                                                               last_name=newdata.get('last_name'),
                                                               middle_name=newdata.get('middle_name'),
@@ -352,7 +352,6 @@ class Main(QMainWindow):
 
     def import_csv(self):
         try:
-            from PyQt5.QtWidgets import QFileDialog
             # Ensure CSV filter is selected by default. Use a non-native dialog
             # when needed so selectedFilter is respected on macOS.
             opts = QFileDialog.Options()
@@ -361,12 +360,10 @@ class Main(QMainWindow):
                                                       'CSV Files (*.csv);;Excel Files (*.xlsx)',
                                                       'CSV Files (*.csv)', options=opts)
             if filename:
-                # Dispatch to the correct importer based on file extension
                 if filename.lower().endswith('.xlsx'):
                     result = DataManager.import_from_xlsx(filename, self.db_manager, self.bank)
                 else:
                     result = DataManager.import_from_csv(filename, self.db_manager, self.bank)
-                # Update dialog to use new keys: 'success', 'errors', 'duplicates'
                 dlg = ImportResultDialog(result, self)
                 dlg.exec_()
                 self.refresh_table()
@@ -375,8 +372,6 @@ class Main(QMainWindow):
 
     def import_xlsx(self):
         try:
-            from PyQt5.QtWidgets import QFileDialog
-            # Force Excel filter as selectedFilter to ensure default on all platforms.
             opts = QFileDialog.Options()
             opts |= QFileDialog.DontUseNativeDialog
             filename, _ = QFileDialog.getOpenFileName(self, 'Importar Excel', '',
@@ -395,7 +390,6 @@ class Main(QMainWindow):
 
     def export_csv(self):
         try:
-            from PyQt5.QtWidgets import QFileDialog
             filename, _ = QFileDialog.getSaveFileName(self, 'Exportar CSV', '', 'CSV Files (*.csv)')
             if filename:
                 accounts = self.bank.handle_list_accounts()
@@ -409,7 +403,6 @@ class Main(QMainWindow):
 
     def export_xlsx(self):
         try:
-            from PyQt5.QtWidgets import QFileDialog
             filename, _ = QFileDialog.getSaveFileName(self, 'Exportar Excel', '', 'Excel Files (*.xlsx)')
             if filename:
                 accounts = self.bank.handle_list_accounts()
@@ -421,7 +414,6 @@ class Main(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
 
-    # Métodos de filtros
     def show_balance_filter(self):
         try:
             dlg = BalanceFilterDialog(self)

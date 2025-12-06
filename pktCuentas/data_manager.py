@@ -1,6 +1,10 @@
-import pandas as pd
-from typing import Dict, List, Tuple
 import os
+from typing import Dict, List, Tuple
+
+import pandas as pd
+
+from pktCuentas.credit_account import CreditAccount
+from pktCuentas.account import Account
 
 class DataManager:
 
@@ -126,12 +130,12 @@ class DataManager:
                             result['duplicates'].append(account_no)
                             continue
                         if account_type == 'credit':
-                            from pktCuentas.credit_account import CreditAccount
+
                             account = CreditAccount(account_no, last_name, middle_name, first_name, balance, date, location)
                             if credit_limit > 0:
                                 account.set_credit(credit_limit)
                         else:
-                            from pktCuentas.account import Account
+
                             account = Account(account_no, last_name, middle_name, first_name, balance, date, location)
                         bank.accounts.append(account)
                         result['success'] += 1
@@ -160,8 +164,6 @@ class DataManager:
 
             data = []
             for acc in accounts:
-                from pktCuentas.credit_account import CreditAccount
-
                 account_type = 'credit' if isinstance(acc, CreditAccount) else 'normal'
                 credit_limit = acc.get_credit_limit() if isinstance(acc, CreditAccount) else 0.0
 
@@ -231,11 +233,6 @@ class DataManager:
 
     @staticmethod
     def import_from_xlsx(file_path: str, db_manager, bank) -> Dict:
-        """
-        Import accounts from an Excel (.xlsx) file. This method normalizes common
-        header names (e.g. 'Account No.' / 'account_no', 'Last Name' / 'last_name')
-        so sheets produced by export_to_xlsx or user-created files are accepted.
-        """
         result = {
             'success': 0,
             'errors': [],
