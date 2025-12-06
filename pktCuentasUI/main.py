@@ -355,7 +355,6 @@ class Main(QMainWindow):
             # Ensure CSV filter is selected by default. Use a non-native dialog
             # when needed so selectedFilter is respected on macOS.
             opts = QFileDialog.Options()
-            opts |= QFileDialog.DontUseNativeDialog
             filename, _ = QFileDialog.getOpenFileName(self, 'Importar CSV', '',
                                                       'CSV Files (*.csv);;Excel Files (*.xlsx)',
                                                       'CSV Files (*.csv)', options=opts)
@@ -373,7 +372,6 @@ class Main(QMainWindow):
     def import_xlsx(self):
         try:
             opts = QFileDialog.Options()
-            opts |= QFileDialog.DontUseNativeDialog
             filename, _ = QFileDialog.getOpenFileName(self, 'Importar Excel', '',
                                                       'Excel Files (*.xlsx);;CSV Files (*.csv)',
                                                       'Excel Files (*.xlsx)', options=opts)
